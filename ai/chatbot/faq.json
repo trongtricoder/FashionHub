@@ -1,0 +1,82 @@
+[
+  {
+    "id": "doi_tra",
+    "keywords": [
+      "doi tra",
+      "doi hang",
+      "tra hang",
+      "hoan tra",
+      "hoan tien",
+      "bao hanh",
+      "loi san pham"
+    ],
+    "answer": "Nếu sản phẩm gặp vấn đề, bạn vào mục Đơn hàng, chọn đơn đã giao để gửi yêu cầu trả hàng, hoặc nhắn trực tiếp cho shop. Hãy giữ nguyên tem mác và chụp ảnh sản phẩm để được hỗ trợ nhanh. Chính sách chi tiết do từng shop và Admin xác nhận."
+  },
+  {
+    "id": "phi_giao",
+    "keywords": [
+      "phi giao",
+      "phi ship",
+      "tien ship",
+      "phi van chuyen",
+      "mien phi giao",
+      "freeship",
+      "free ship"
+    ],
+    "answer": "Hiện hệ thống chưa thu phí giao hàng riêng: số tiền bạn thanh toán là tổng giá các sản phẩm trong đơn."
+  },
+  {
+    "id": "thoi_gian_giao",
+    "keywords": [
+      "thoi gian giao",
+      "giao hang bao lau",
+      "bao lau nhan",
+      "may ngay",
+      "khi nao nhan",
+      "khi nao giao",
+      "du kien giao",
+      "bao gio giao"
+    ],
+    "answer": "Thời gian giao dự kiến = thời gian shop chuẩn bị hàng + thời gian di chuyển (ước tính khoảng 25 km/giờ trong nội thành). Bạn xem mục \"Dự kiến giao\" trong trang Đơn hàng. Cho phép chia sẻ vị trí khi đặt hàng để hệ thống tính chính xác hơn."
+  },
+  {
+    "id": "chon_size",
+    "keywords": [
+      "chon size",
+      "bang size",
+      "size nao",
+      "mac size",
+      "tu van size",
+      "size gi",
+      "vua size",
+      "size"
+    ],
+    "answer": "Cách chọn size nhanh: lấy bậc lớn hơn trong hai bậc theo chiều cao và theo cân nặng. Chiều cao tối đa: S 160 cm, M 168 cm, L 176 cm, XL 184 cm. Cân nặng tối đa: S 52 kg, M 62 kg, L 72 kg, XL 85 kg. Nhập số đo của bạn ở mục Trợ Lý AI để được gợi ý size và sản phẩm phù hợp."
+  },
+  {
+    "id": "thanh_toan",
+    "keywords": [
+      "thanh toan",
+      "tra tien",
+      "cod",
+      "the tin dung",
+      "chuyen khoan",
+      "payment",
+      "tra sau"
+    ],
+    "answer": "Bạn có thể chọn thanh toán khi nhận hàng (COD) hoặc thẻ mô phỏng. Thanh toán thẻ ở hệ thống này chỉ là mô phỏng, không trừ tiền thật."
+  },
+  {
+    "id": "lien_he_admin",
+    "keywords": [
+      "lien he",
+      "admin",
+      "hotline",
+      "ho tro",
+      "khieu nai",
+      "gap nhan vien",
+      "email"
+    ],
+    "answer": "Bạn có thể gửi yêu cầu cho Admin ở mục Hỗ trợ (Ticket) trong menu, hoặc liên hệ qua email admin@shop.example, hotline 1900 0000."
+  }
+]

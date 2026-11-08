@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Pro - Cửa Hàng & Sản Phẩm</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="/assets/css/seller.css" />
+  <script src="/assets/js/core/api.js"></script>
+  <script src="/assets/js/seller/common.js"></script>
+  <style>
+    :root {
+      --pink-main: #d985a7; --pink-dark: #b95f84; --pink-pastel: #f8dce7;
+      --pink-pale: #fff7fa; --white: #ffffff; --text-dark: #4a3b43;
+      --text-muted: #8a727d; --border: #efd5e0; --red: #e74c3c; --green: #2ecc71;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: var(--pink-pale); color: var(--text-dark); line-height: 1.5; }
+    button { cursor: pointer; }
+
+    header {
+      background: var(--white); border-bottom: 2px solid var(--border);
+      padding: 16px 6%; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 4px 15px rgba(217, 133, 167, 0.08);
+    }
+    .header-top { display: flex; align-items: center; justify-content: space-between; gap: 25px; margin-bottom: 14px; }
+    .logo-container { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .logo-container img { height: 42px; width: 42px; object-fit: cover; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .logo { font-size: 24px; font-weight: bold; color: var(--pink-dark); letter-spacing: 1px; }
+    .logo span { display: block; font-size: 11px; color: var(--text-muted); font-weight: normal; }
+
+    .search-container { position: relative; flex: 1; max-width: 550px; }
+    .search-bar input {
+      width: 100%; background: var(--pink-pale); border: 1.5px solid var(--border);
+      border-radius: 25px; padding: 12px 20px; outline: none; font-size: 15px;
+    }
+    .header-actions { display: flex; align-items: center; gap: 18px; position: relative; }
+    .lang-select { border: none; background: transparent; font-size: 15px; font-weight: bold; cursor: pointer; outline: none; }
+    .icon-btn {
+      background: var(--pink-pale); border: 1px solid var(--border); width: 44px; height: 44px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; position: relative;
+    }
+    .notif-badge {
+      position: absolute; top: -2px; right: -2px; background: var(--red); color: white;
+      width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .avatar-btn {
+      width: 46px; height: 46px; border-radius: 50%; background: var(--pink-pastel);
+      color: var(--pink-dark); font-weight: bold; display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--border); cursor: pointer; font-size: 17px;
+    }
+    .user-dropdown {
+      position: absolute; top: 56px; right: 0; width: 260px; background: var(--white);
+      border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      display: none; flex-direction: column; z-index: 200; overflow: hidden;
+    }
+    .user-dropdown.show { display: flex; }
+    .user-dropdown-header { padding: 14px; background: var(--pink-pale); display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+    .dropdown-avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--pink-main); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .dropdown-menu-list { list-style: none; padding: 6px 0; }
+    .dropdown-menu-list li a { display: flex; align-items: center; gap: 10px; padding: 10px 18px; color: var(--text-dark); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .dropdown-menu-list li a:hover { background: var(--pink-pastel); color: var(--pink-dark); }
+    .dropdown-menu-list li a.logout-btn { color: var(--red); font-weight: bold; border-top: 1px solid var(--border); margin-top: 4px; padding-top: 12px; }
+
+    .header-bottom { border-top: 1px dashed var(--border); padding-top: 10px; }
+    nav { display: flex; gap: 12px; align-items: center; }
+    nav a {
+      border: none; background: transparent; color: var(--text-dark); text-decoration: none;
+      padding: 10px 20px; border-radius: 12px; font-weight: bold; transition: all 0.2s; font-size: 16px;
+    }
+    nav a:hover, nav a.active { background: var(--pink-pastel); color: var(--pink-dark); }
+
+    main { max-width: 1250px; margin: 30px auto; padding: 0 20px; }
+    .panel { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+    .btn { border: none; border-radius: 10px; padding: 10px 18px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .btn-primary { background: var(--pink-main); color: white; }
+    .btn-primary:hover { background: var(--pink-dark); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-top">
+      <div class="logo-container" onclick="location.href='index.html'">
+        <img src="https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmFkZGY0NGY5NjI4ODE5MWE4NjdkNTg2MmI4YjczZjA6ZmlsZV8wMDAwMDAwMGE2MDg4MjExODc1ODFjNmUwZTFiOGVhMSIsImdpem1vX2lkIjpudWxsLCJ3aWQiOm51bGwsIm9pZCI6bnVsbCwic2lkIjpudWxsLCJjcyI6bnVsbCwiZm4iOm51bGwsImNkIjpudWxsLCJ0cyI6IjIwNzUxIiwicCI6InB5aSIsImNpZCI6IjEiLCJzaWciOiI4MTEzZmFhMDYzOGE3NmUxYzBiOWMwNjVkOTAzNmY3MGI4NDc3YTlkNGE0ZDg0MzczZDEwYzI1ZDdiY2JiM2MzIiwidiI6IjAiLCJjZG4iOm51bGwsImNwIjpudWxsLCJtYSI6bnVsbH0=" alt="Logo">
+        <div class="logo">SELLER PRO <span>MANAGEMENT SYSTEM</span></div>
+      </div>
+
+      <div class="search-container">
+        <div class="search-bar">
+          <input type="text" placeholder="Search products in store...">
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <select class="lang-select">
+          <option>Tiếng Việt ∨</option>
+          <option>English ∨</option>
+        </select>
+        <button class="icon-btn">🔔 <span class="notif-badge">2</span></button>
+        <div class="avatar-btn" id="avatarBtn" onclick="toggleUserDropdown(event)">SH</div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-header">
+            <div class="dropdown-avatar" id="dropdownAvatar">SH</div>
+            <div class="dropdown-info">
+              <h4 id="shopNameHeader">My Fashion Store</h4>
+              <p id="sellerEmailHeader">seller@system.com</p>
+            </div>
+          </div>
+          <ul class="dropdown-menu-list">
+            <li><a href="shop.html">📱 Cửa hàng của tôi</a></li>
+            <li><a href="orders.html">📋 Quản lý đơn hàng</a></li>
+            <li><a href="#" class="logout-btn" onclick="signOut(event)">↪ Đăng xuất</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-bottom">
+      <nav>
+        <a href="index.html">Trang chủ</a>
+        <a href="shop.html" class="active">🏪 Cửa hàng & Sản phẩm</a>
+        <a href="orders.html">📦 Đơn hàng</a>
+        <a href="dashboard.html">📊 Thống kê & AI</a>
+        <a href="ticket.html">🎫 Ticket Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="shop-layout">
+      <aside>
+        <div class="panel">
+          <h3 style="color: var(--pink-dark); margin-bottom: 14px;">Thông tin cửa hàng</h3>
+          <div id="shopNote"></div>
+          <div class="field"><label for="shopName">Tên shop</label><input id="shopName" maxlength="100"></div>
+          <div class="field"><label for="shopDesc">Mô tả</label><textarea id="shopDesc" rows="3" maxlength="500"></textarea></div>
+          <div class="field"><label for="shopAddress">Địa chỉ</label><input id="shopAddress" maxlength="255"></div>
+          <div class="field">
+            <label for="shopPrep">Thời gian chuẩn bị hàng (phút)</label>
+            <input id="shopPrep" type="number" min="5" max="600">
+            <small>Cộng vào giờ giao dự kiến của người mua.</small>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="shopLat">Vĩ độ</label><input id="shopLat" type="number" step="any"></div>
+            <div class="field"><label for="shopLng">Kinh độ</label><input id="shopLng" type="number" step="any"></div>
+          </div>
+          <div id="shopMap" style="width: 100%; height: 220px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 6px;"></div>
+          <small id="shopMapNote" style="display: block; color: var(--text-muted); margin-bottom: 14px;">Bấm lên bản đồ để chọn vị trí cửa hàng.</small>
+          <button class="btn btn-primary" id="saveShopBtn" style="width: 100%;">Lưu thông tin shop</button>
+        </div>
+
+        <div class="panel">
+          <h3 style="color: var(--pink-dark); margin-bottom: 14px;">Tổng quan</h3>
+          <div class="stat-list" id="shopStats"></div>
+        </div>
+      </aside>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Sản phẩm của shop</h2>
+          <div class="toolbar">
+            <select id="statusFilter" aria-label="Lọc theo trạng thái">
+              <option value="">Tất cả trạng thái</option>
+              <option value="approved">Đã đăng</option>
+              <option value="pending">Chờ Admin duyệt</option>
+              <option value="blocked">Bị chặn</option>
+              <option value="rejected">Bị từ chối</option>
+            </select>
+            <button class="btn btn-primary" id="addProductBtn"><i class="fa-solid fa-plus mr-1"></i> Thêm sản phẩm</button>
+          </div>
+        </div>
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="seller-toast" id="sellerToast"></div>
+
+  <script>
+    function toggleUserDropdown(e) {
+      if(e) e.stopPropagation();
+      document.getElementById("userDropdown").classList.toggle("show");
+    }
+    window.onclick = function() { document.getElementById("userDropdown").classList.remove('show'); }
+
+    // ===== Patch 05: quản lý shop và danh sách sản phẩm thật =====
+    let myShop = null, currentMe = null;
+    let map = null, marker = null;
+
+    // ----- Thông tin shop -----
+    function fillShop(shop) {
+      myShop = shop;
+      document.getElementById("shopName").value = shop.name || "";
+      document.getElementById("shopDesc").value = shop.description || "";
+      document.getElementById("shopAddress").value = shop.address || "";
+      document.getElementById("shopPrep").value = shop.prep_minutes;
+      document.getElementById("shopLat").value = shop.lat != null ? shop.lat : "";
+      document.getElementById("shopLng").value = shop.lng != null ? shop.lng : "";
+      fillSellerHeader(currentMe, shop);
+      if (shop.moderation_status !== "approved") {
+        const label = STATUS_LABEL[shop.moderation_status] || shop.moderation_status;
+        const why = shop.reject_reason ? `<br><b>Lý do Admin từ chối:</b> ${escapeHtml(shop.reject_reason)}` : "";
+        document.getElementById("shopNote").innerHTML =
+          `<div class="result-box warn"><b>Shop đang ở trạng thái: ${escapeHtml(label)}.</b> Sản phẩm của shop chưa hiển thị với người mua. Chỉnh sửa thông tin rồi lưu để kiểm duyệt lại.${why}</div>`;
+      } else {
+        document.getElementById("shopNote").innerHTML = "";
+      }
+      placeMarker(shop.lat, shop.lng, false);
+    }
+
+    function initMap() {
+      const note = document.getElementById("shopMapNote");
+      if (typeof L === "undefined") {   // không tải được thư viện bản đồ: vẫn nhập tay vĩ độ, kinh độ được
+        document.getElementById("shopMap").style.display = "none";
+        note.innerText = "Không tải được bản đồ. Bạn vẫn có thể nhập vĩ độ và kinh độ bằng tay.";
+        return;
+      }
+      map = L.map("shopMap").setView([10.7769, 106.7009], 12);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
+      map.on("click", e => {
+        document.getElementById("shopLat").value = e.latlng.lat.toFixed(6);
+        document.getElementById("shopLng").value = e.latlng.lng.toFixed(6);
+        placeMarker(e.latlng.lat, e.latlng.lng, false);
+      });
+    }
+
+    function placeMarker(lat, lng, recenter) {
+      if (!map || lat == null || lng == null || lat === "" || lng === "") return;
+      if (marker) marker.setLatLng([lat, lng]); else marker = L.marker([lat, lng]).addTo(map);
+      if (recenter !== false) map.setView([lat, lng], 14);
+      else if (map.getZoom() < 13) map.setView([lat, lng], 14);
+    }
+
+    async function saveShop() {
+      const btn = document.getElementById("saveShopBtn");
+      const lat = document.getElementById("shopLat").value;
+      const lng = document.getElementById("shopLng").value;
+      const body = {
+        name: document.getElementById("shopName").value,
+        description: document.getElementById("shopDesc").value,
+        address: document.getElementById("shopAddress").value,
+        prep_minutes: Number(document.getElementById("shopPrep").value),
+        lat: lat === "" ? null : Number(lat),
+        lng: lng === "" ? null : Number(lng)
+      };
+      btn.disabled = true;
+      try {
+        const data = await api("/seller/shop", { method: "PUT", body });
+        fillShop(data.shop);
+        document.getElementById("shopNote").innerHTML = moderationHtml(data.moderation, "Cửa hàng") + document.getElementById("shopNote").innerHTML;
+        showToast("Đã lưu thông tin shop.");
+        if (data.moderation.account && data.moderation.account.action === "ban") setTimeout(signOut, 4000);
+      } catch (err) {
+        handleError(err);
+      }
+      btn.disabled = false;
+    }
+
+    async function loadStats() {
+      try {
+        const s = await api("/seller/stats");
+        const cards = [["Tổng đã bán", s.total_sold], ["Tổng tồn kho", s.total_stock], ["Sản phẩm chờ duyệt", s.pending_products]];
+        document.getElementById("shopStats").innerHTML = cards.map(c =>
+          `<div class="stat-card"><b>${escapeHtml(c[1])}</b><span>${escapeHtml(c[0])}</span></div>`).join("");
+      } catch (err) {
+        handleError(err);
+      }
+    }
+
+    // ----- Danh sách sản phẩm -----
+    function productCard(p) {
+      const why = (p.moderation_status === "pending" || p.moderation_status === "blocked") && p.risk_reasons.length
+        ? `<div class="why">⚠ ${escapeHtml(p.risk_reasons[0].detail)}${p.risk_reasons.length > 1 ? ` (+${p.risk_reasons.length - 1} lý do khác)` : ""}</div>` : "";
+      return `
+        <div class="product-card" data-id="${p.id}" tabindex="0">
+          <span class="badge badge-${p.moderation_status}">${STATUS_LABEL[p.moderation_status] || p.moderation_status}</span>
+          <img src="${escapeHtml(p.image_url || "")}" alt="${escapeHtml(p.name)}">
+          <h4>${escapeHtml(p.name)}</h4>
+          <div class="price">${money(p.price)}</div>
+          <div class="meta">Kho: ${p.stock_total} | Đã bán: ${p.sold_count}</div>
+          ${why}
+        </div>`;
+    }
+
+    async function loadProducts() {
+      const grid = document.getElementById("productGrid");
+      grid.innerHTML = '<div class="state-box">Đang tải...</div>';
+      const status = document.getElementById("statusFilter").value;
+      try {
+        const data = await api("/seller/products" + (status ? "?status=" + status : ""));
+        grid.innerHTML = data.items.length
+          ? data.items.map(productCard).join("")
+          : '<div class="state-box">Chưa có sản phẩm nào. Bấm "Thêm sản phẩm" để bắt đầu.</div>';
+      } catch (err) {
+        if (err.status === 401) return handleError(err);
+        grid.innerHTML = `<div class="state-box">${escapeHtml(err.message)}<br><button class="btn btn-ghost" id="retryBtn" style="margin-top:10px;">Thử lại</button></div>`;
+      }
+    }
+
+    document.getElementById("productGrid").addEventListener("click", e => {
+      if (e.target.id === "retryBtn") return loadProducts();
+      const card = e.target.closest(".product-card");
+      if (card) window.location.href = "product-edit.html?id=" + card.dataset.id;
+    });
+    document.getElementById("productGrid").addEventListener("keydown", e => {
+      const card = e.target.closest(".product-card");
+      if (card && e.key === "Enter") window.location.href = "product-edit.html?id=" + card.dataset.id;
+    });
+    document.getElementById("addProductBtn").addEventListener("click", () => { window.location.href = "product-edit.html"; });
+    document.getElementById("statusFilter").addEventListener("change", loadProducts);
+    document.getElementById("saveShopBtn").addEventListener("click", saveShop);
+    ["shopLat", "shopLng"].forEach(id => document.getElementById(id).addEventListener("change", () => {
+      placeMarker(document.getElementById("shopLat").value, document.getElementById("shopLng").value);
+    }));
+
+    document.addEventListener("DOMContentLoaded", async function() {
+      const me = requireRole("seller");   // chưa đăng nhập hoặc sai vai trò thì về trang đăng nhập
+      if (!me) return;
+      currentMe = me;
+      fillSellerHeader(me, null);
+      initMap();
+      try {
+        fillShop(await api("/seller/shop"));
+      } catch (err) {
+        handleError(err);
+      }
+      await Promise.all([loadStats(), loadProducts()]);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Pro - Thống Kê & AI</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/assets/css/seller.css" />
+  <script src="/assets/js/core/api.js"></script>
+  <script src="/assets/js/seller/common.js"></script>
+  <style>
+    :root {
+      --pink-main: #d985a7;
+      --pink-dark: #b95f84;
+      --pink-pastel: #f8dce7;
+      --pink-pale: #fff7fa;
+      --white: #ffffff;
+      --text-dark: #4a3b43;
+      --text-muted: #8a727d;
+      --border: #efd5e0;
+      --red: #e74c3c;
+      --green: #2ecc71;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: var(--pink-pale); color: var(--text-dark); line-height: 1.5; }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+
+    header {
+      background: var(--white);
+      border-bottom: 2px solid var(--border);
+      padding: 16px 6%;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(217, 133, 167, 0.08);
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 25px;
+      margin-bottom: 14px;
+    }
+
+    .logo-container { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .logo-container img { height: 42px; width: 42px; object-fit: cover; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .logo { font-size: 24px; font-weight: bold; color: var(--pink-dark); letter-spacing: 1px; white-space: nowrap; }
+    .logo span { display: block; font-size: 11px; color: var(--text-muted); font-weight: normal; }
+
+    .search-container { position: relative; flex: 1; max-width: 550px; }
+    .search-bar { display: flex; gap: 6px; }
+    .search-bar input {
+      width: 100%; background: var(--pink-pale); border: 1.5px solid var(--border);
+      border-radius: 25px; padding: 12px 20px; outline: none; font-size: 15px;
+      transition: all 0.2s;
+    }
+    .search-bar input:focus { border-color: var(--pink-main); background: var(--white); }
+    .search-suggestions {
+      position: absolute; top: 105%; left: 0; right: 0; background: white;
+      border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      display: none; z-index: 150; max-height: 220px; overflow-y: auto;
+    }
+    .suggestion-item { padding: 12px 18px; cursor: pointer; font-size: 14px; border-bottom: 1px solid #f8dce7; }
+    .suggestion-item:hover { background: var(--pink-pastel); color: var(--pink-dark); }
+
+    .header-actions { display: flex; align-items: center; gap: 18px; position: relative; }
+    .lang-select { border: none; background: transparent; font-size: 15px; font-weight: bold; cursor: pointer; outline: none; }
+    .icon-btn {
+      background: var(--pink-pale); border: 1px solid var(--border); width: 44px; height: 44px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;
+      position: relative; cursor: pointer;
+    }
+    .notif-badge {
+      position: absolute; top: -2px; right: -2px; background: var(--red); color: white;
+      width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .avatar-btn {
+      width: 46px; height: 46px; border-radius: 50%; background: var(--pink-pastel);
+      color: var(--pink-dark); font-weight: bold; display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--border); cursor: pointer; font-size: 17px; overflow: hidden;
+    }
+
+    .user-dropdown {
+      position: absolute; top: 56px; right: 0; width: 260px; background: var(--white);
+      border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      display: none; flex-direction: column; z-index: 200; overflow: hidden;
+    }
+    .user-dropdown.show { display: flex; }
+    .user-dropdown-header { padding: 14px; background: var(--pink-pale); display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+    .dropdown-avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--pink-main); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .dropdown-info h4 { font-size: 15px; }
+    .dropdown-info p { font-size: 12px; color: var(--text-muted); }
+    .dropdown-menu-list { list-style: none; padding: 6px 0; }
+    .dropdown-menu-list li a {
+      display: flex; align-items: center; gap: 10px; padding: 10px 18px;
+      color: var(--text-dark); text-decoration: none; font-size: 14px; font-weight: 500;
+    }
+    .dropdown-menu-list li a:hover { background: var(--pink-pastel); color: var(--pink-dark); }
+    .dropdown-menu-list li a.logout-btn { color: var(--red); font-weight: bold; border-top: 1px solid var(--border); margin-top: 4px; padding-top: 12px; }
+
+    .header-bottom { border-top: 1px dashed var(--border); padding-top: 10px; }
+    nav { display: flex; gap: 12px; align-items: center; }
+    nav a {
+      border: none; background: transparent; color: var(--text-dark); text-decoration: none;
+      padding: 10px 20px; border-radius: 12px; font-weight: bold; transition: all 0.2s; font-size: 16px; cursor: pointer;
+    }
+    nav a:hover, nav a.active { background: var(--pink-pastel); color: var(--pink-dark); }
+
+    main { max-width: 1250px; margin: 30px auto; padding: 0 20px; }
+    .panel { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+
+    .home-hero {
+      background: linear-gradient(135deg, var(--pink-pastel) 0%, #ffffff 100%);
+      border: 1px solid var(--border); border-radius: 20px; padding: 50px 40px; text-align: center;
+      margin-bottom: 30px; box-shadow: 0 8px 24px rgba(217, 133, 167, 0.1);
+    }
+    .home-hero h1 { font-size: 34px; color: var(--pink-dark); margin-bottom: 12px; }
+    .home-hero p { font-size: 16px; color: var(--text-dark); max-width: 700px; margin: 0 auto 25px auto; line-height: 1.6; }
+
+    .btn { border: none; border-radius: 10px; padding: 12px 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary { background: var(--pink-main); color: white; }
+    .btn-primary:hover { background: var(--pink-dark); }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 300; }
+    .modal-content { background: var(--white); padding: 25px; border-radius: 16px; width: 90%; max-width: 480px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+    .close { position: absolute; top: 14px; right: 18px; font-size: 22px; cursor: pointer; color: var(--text-muted); }
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-group label { font-weight: bold; font-size: 13px; }
+    .form-group input { border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; outline: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-top">
+      <div class="logo-container" onclick="location.href='index.html'">
+        <img src="https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmFkZGY0NGY5NjI4ODE5MWE4NjdkNTg2MmI4YjczZjA6ZmlsZV8wMDAwMDAwMGE2MDg4MjExODc1ODFjNmUwZTFiOGVhMSIsImdpem1vX2lkIjpudWxsLCJ3aWQiOm51bGwsIm9pZCI6bnVsbCwic2lkIjpudWxsLCJjcyI6bnVsbCwiZm4iOm51bGwsImNkIjpudWxsLCJ0cyI6IjIwNzUxIiwicCI6InB5aSIsImNpZCI6IjEiLCJzaWciOiI4MTEzZmFhMDYzOGE3NmUxYzBiOWMwNjVkOTAzNmY3MGI4NDc3YTlkNGE0ZDg0MzczZDEwYzI1ZDdiY2JiM2MzIiwidiI6IjAiLCJjZG4iOm51bGwsImNwIjpudWxsLCJtYSI6bnVsbH0=" alt="Logo">
+        <div class="logo">SELLER PRO <span>MANAGEMENT SYSTEM</span></div>
+      </div>
+
+      <div class="search-container">
+        <div class="search-bar">
+          <input type="text" id="searchInput" placeholder="Search products, orders or customers..." oninput="onSearchInput()" onfocus="onSearchInput()">
+        </div>
+        <div class="search-suggestions" id="searchSuggestions"></div>
+      </div>
+
+      <div class="header-actions">
+        <select class="lang-select" id="langSelect" onchange="changeLanguage(this.value)">
+          <option value="vi">Tiếng Việt ∨</option>
+          <option value="en">English ∨</option>
+        </select>
+
+        <button class="icon-btn" onclick="openModal('notificationsModal')">
+          🔔 <span class="notif-badge">2</span>
+        </button>
+
+        <div class="avatar-btn" onclick="toggleUserDropdown(event)" id="avatarBtn">SH</div>
+
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-header">
+            <div class="dropdown-avatar" id="dropdownAvatar">SH</div>
+            <div class="dropdown-info">
+              <h4 id="shopNameHeader">My Fashion Store</h4>
+              <p id="sellerEmailHeader">seller@system.com</p>
+            </div>
+          </div>
+          <ul class="dropdown-menu-list">
+            <li><a href="shop.html">📱 Cửa hàng của tôi</a></li>
+            <li><a href="orders.html">📋 Quản lý đơn hàng</a></li>
+            <li><a href="#" onclick="openModal('changePasswordModal')">🔑 Đổi mật khẩu</a></li>
+            <li><a href="#" class="logout-btn" onclick="signOut(event)">↪ Đăng xuất</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-bottom">
+      <nav>
+        <a href="index.html">Trang chủ</a>
+        <a href="shop.html">🏪 Cửa hàng & Sản phẩm</a>
+        <a href="orders.html">📦 Đơn hàng</a>
+        <a href="dashboard.html" class="active">📊 Thống kê & AI</a>
+        <a href="ticket.html">🎫 Ticket Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="panel">
+      <div class="section-head">
+        <h2><i class="fa-solid fa-chart-line mr-2"></i> Thống kê cửa hàng</h2>
+        <div class="tabs" id="rangeTabs">
+          <button class="tab" data-range="7d">7 ngày</button>
+          <button class="tab active" data-range="30d">30 ngày</button>
+          <button class="tab" data-range="12m">12 tháng</button>
+        </div>
+      </div>
+      <div class="kpi-row" id="kpiRow"></div>
+      <div class="chart-box"><canvas id="mainChart"></canvas></div>
+      <p class="order-meta" id="chartNote" style="margin-top: 10px;"></p>
+    </div>
+
+    <div class="panel">
+      <div class="section-head">
+        <h2>🤖 Trợ lý AI của shop</h2>
+        <button class="btn btn-primary" id="startBtn">Bắt đầu phân tích</button>
+      </div>
+      <div id="insightsArea"><div class="state-box">Bấm "Bắt đầu phân tích" để AI thống kê 30 ngày gần nhất và đưa ra gợi ý cho cửa hàng.</div></div>
+    </div>
+
+    <div class="panel">
+      <h3 style="color: var(--pink-dark); margin-bottom: 12px;">Hỏi AI về cửa hàng</h3>
+      <div class="chat-log" id="chatLog">
+        <div class="bubble ai">Xin chào! Mình trả lời bằng số liệu thật của shop. Bạn có thể hỏi về doanh thu, tồn kho, sản phẩm bán chạy, hàng bán chậm, đơn hàng hoặc xin gợi ý.</div>
+      </div>
+      <div class="chips" id="chatChips">
+        <button class="chip" data-q="Doanh thu tuần này?">Doanh thu tuần này?</button>
+        <button class="chip" data-q="Tồn kho còn bao nhiêu?">Tồn kho còn bao nhiêu?</button>
+        <button class="chip" data-q="Sản phẩm nào bán chạy nhất?">Sản phẩm bán chạy nhất?</button>
+        <button class="chip" data-q="Hàng nào bán chậm?">Hàng nào bán chậm?</button>
+        <button class="chip" data-q="Đơn hàng của tôi thế nào?">Đơn hàng thế nào?</button>
+        <button class="chip" data-q="Cho mình gợi ý để bán tốt hơn">Gợi ý để bán tốt hơn</button>
+      </div>
+      <div class="chat-input">
+        <input id="chatInput" maxlength="300" placeholder="Nhập câu hỏi, ví dụ: doanh thu tuần này?" aria-label="Câu hỏi cho AI">
+        <button class="btn btn-primary" id="chatSend">Gửi</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="seller-toast" id="sellerToast"></div>
+
+  <div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('changePasswordModal')">&times;</span>
+      <h3 style="color: var(--pink-dark); margin-bottom: 15px;">Đổi mật khẩu tài khoản</h3>
+      <div class="form-group"><label>Mật khẩu hiện tại</label><input type="password"></div>
+      <div class="form-group"><label>Mật khẩu mới</label><input type="password"></div>
+      <div class="form-group"><label>Xác nhận mật khẩu mới</label><input type="password"></div>
+      <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="alert('Đổi mật khẩu thành công!'); closeModal('changePasswordModal');">Cập nhật mật khẩu</button>
+    </div>
+  </div>
+
+  <div id="notificationsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('notificationsModal')">&times;</span>
+      <h3 style="color: var(--pink-dark); margin-bottom: 15px;">🔔 Thông báo hệ thống</h3>
+      <p style="font-size: 14px; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px;"><strong>Đơn hàng mới:</strong> Đơn #1001 vừa được đặt thành công.</p>
+      <p style="font-size: 14px;"><strong>Hệ thống:</strong> Chào mừng bạn đến với Seller Pro phiên bản 2.0.</p>
+    </div>
+  </div>
+
+  <script>
+    // ===== Patch 07: dashboard thật =====
+    let chart = null;
+    let currentRange = "30d";
+    let chatBusy = false;
+
+    function fmtLabel(label, unit) {
+      const p = label.split("-");
+      return unit === "month" ? p[1] + "/" + p[0] : p[2] + "/" + p[1];
+    }
+    function shortMoney(v) {
+      if (v >= 1000000) return (v / 1000000).toLocaleString("vi-VN", { maximumFractionDigits: 1 }) + " tr";
+      if (v >= 1000) return (v / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 0 }) + "k";
+      return v;
+    }
+
+    function renderKpis(k) {
+      const cards = [
+        ["Doanh thu", money(k.total_revenue)], ["Đơn hoàn tất", k.total_orders], ["Lượt xem", k.total_views],
+        ["Tỷ lệ chuyển đổi", (k.conversion_rate * 100).toFixed(1) + "%"], ["Tổng đã bán", k.total_sold], ["Tổng tồn kho", k.total_stock]
+      ];
+      document.getElementById("kpiRow").innerHTML = cards.map(c =>
+        `<div class="kpi-card"><b>${escapeHtml(c[1])}</b><span>${escapeHtml(c[0])}</span></div>`).join("");
+    }
+
+    function renderChart(d) {
+      const note = document.getElementById("chartNote");
+      if (typeof Chart === "undefined") { note.innerText = "Không tải được thư viện biểu đồ. Kiểm tra kết nối mạng rồi tải lại trang."; return; }
+      if (chart) chart.destroy();
+      const unit = d.range === "12m" ? "month" : "day";
+      const fcLen = d.forecast ? d.forecast.labels.length : 0;
+      const pad = arr => arr.concat(Array(fcLen).fill(null));
+      const labels = d.labels.concat(d.forecast ? d.forecast.labels : []).map(l => fmtLabel(l, unit));
+      const datasets = [
+        { label: "Doanh thu (VNĐ)", data: pad(d.revenue), borderColor: "#D985A7", backgroundColor: "rgba(217, 133, 167, 0.15)", fill: true, tension: 0.35, yAxisID: "y" },
+        { label: "Lượt xem", data: pad(d.views), borderColor: "#8a727d", tension: 0.35, yAxisID: "y1" }
+      ];
+      if (d.forecast) {
+        // nối từ điểm thật cuối cùng để đường dự đoán liền mạch với đường doanh thu
+        const lastActual = d.revenue[d.revenue.length - 1];
+        datasets.push({ label: "Dự đoán doanh thu", data: Array(d.labels.length - 1).fill(null).concat([lastActual], d.forecast.revenue),
+          borderColor: "#4a3b43", borderDash: [6, 6], pointRadius: 2, tension: 0.2, yAxisID: "y" });
+        const total = d.forecast.revenue.reduce((a, b) => a + b, 0);
+        note.innerText = `Dự đoán doanh thu 7 ngày tới: khoảng ${money(total)} (tính từ xu hướng 30 ngày gần nhất và thói quen mua theo thứ trong tuần).`;
+      } else {
+        note.innerText = "Xem theo tháng không có dự đoán.";
+      }
+      chart = new Chart(document.getElementById("mainChart"), {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+          scales: {
+            y: { position: "left", beginAtZero: true, ticks: { callback: shortMoney } },
+            y1: { position: "right", beginAtZero: true, grid: { drawOnChartArea: false } }
+          }
+        }
+      });
+    }
+
+    async function loadDashboard(range) {
+      currentRange = range;
+      document.querySelectorAll("#rangeTabs .tab").forEach(t => t.classList.toggle("active", t.dataset.range === range));
+      try {
+        const d = await api("/seller/dashboard?range=" + range);
+        if (range !== currentRange) return;   // người dùng đã bấm sang khoảng khác trong lúc chờ
+        renderKpis(d.kpi);
+        renderChart(d);
+      } catch (err) {
+        handleError(err);
+      }
+    }
+
+    // ----- Gợi ý của AI -----
+    async function startAnalysis() {
+      const btn = document.getElementById("startBtn");
+      const area = document.getElementById("insightsArea");
+      btn.disabled = true;
+      area.innerHTML = '<div class="state-box">AI đang thống kê và phân tích...</div>';
+      try {
+        const data = await api("/ai/seller/insights", { method: "POST", body: {} });
+        const list = data.suggestions.length
+          ? data.suggestions.map(s => `<div class="sug ${escapeHtml(s.severity)}"><b>${escapeHtml(s.title)}</b><span>${escapeHtml(s.detail)}</span></div>`).join("")
+          : '<div class="state-box">Chưa có gợi ý nào: shop đang ổn.</div>';
+        area.innerHTML = `<div class="summary-box">${escapeHtml(data.summary)}</div><div class="sug-list">${list}</div>`;
+      } catch (err) {
+        area.innerHTML = `<div class="state-box">${escapeHtml(err.message)}</div>`;
+        handleError(err);
+      }
+      btn.disabled = false;
+    }
+
+    // ----- Hỏi AI -----
+    function addBubble(text, who) {
+      const log = document.getElementById("chatLog");
+      const el = document.createElement("div");
+      el.className = "bubble " + who;
+      el.textContent = text;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      return el;
+    }
+
+    async function ask(question) {
+      question = question.trim();
+      if (!question || chatBusy) return;
+      chatBusy = true;
+      document.getElementById("chatInput").value = "";
+      addBubble(question, "user");
+      const waiting = addBubble("...", "ai");
+      try {
+        const data = await api("/ai/seller/chat", { method: "POST", body: { message: question } });
+        waiting.textContent = data.reply;
+      } catch (err) {
+        waiting.textContent = err.message;
+        handleError(err);
+      }
+      chatBusy = false;
+      document.getElementById("chatLog").scrollTop = document.getElementById("chatLog").scrollHeight;
+    }
+
+    document.getElementById("rangeTabs").addEventListener("click", e => {
+      const tab = e.target.closest(".tab");
+      if (tab) loadDashboard(tab.dataset.range);
+    });
+    document.getElementById("startBtn").addEventListener("click", startAnalysis);
+    document.getElementById("chatSend").addEventListener("click", () => ask(document.getElementById("chatInput").value));
+    document.getElementById("chatInput").addEventListener("keydown", e => { if (e.key === "Enter") ask(e.target.value); });
+    document.getElementById("chatChips").addEventListener("click", e => {
+      const chip = e.target.closest(".chip");
+      if (chip) ask(chip.dataset.q);
+    });
+
+    (async function init() {
+      const me = requireRole("seller");   // chưa đăng nhập hoặc sai vai trò thì về trang đăng nhập
+      if (!me) return;
+      fillSellerHeader(me, null);
+      api("/seller/shop").then(shop => fillSellerHeader(me, shop)).catch(handleError);
+      loadDashboard(currentRange);
+    })();
+
+    function toggleUserDropdown(e) {
+      if(e) e.stopPropagation();
+      document.getElementById("userDropdown").classList.toggle("show");
+    }
+    window.onclick = function(e) {
+      if (!e.target.closest('.header-actions')) {
+        document.getElementById("userDropdown").classList.remove('show');
+      }
+    }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function onSearchInput() {
+      const val = document.getElementById("searchInput").value.trim();
+      const box = document.getElementById("searchSuggestions");
+      if(!val) { box.style.display = 'none'; return; }
+      box.style.display = 'block';
+      box.innerHTML = `<div class="suggestion-item">Kết quả tìm kiếm cho: "${escapeHtml(val)}"</div>`;
+    }
+    function changeLanguage(lang) {
+      alert("Đã chuyển ngôn ngữ sang: " + lang.toUpperCase());
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Pro - Ticket Hỗ Trợ Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --pink-main: #d985a7; --pink-dark: #b95f84; --pink-pastel: #f8dce7;
+      --pink-pale: #fff7fa; --white: #ffffff; --text-dark: #4a3b43;
+      --text-muted: #8a727d; --border: #efd5e0; --red: #e74c3c; --green: #2ecc71;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: var(--pink-pale); color: var(--text-dark); line-height: 1.5; }
+    button { cursor: pointer; }
+
+    header {
+      background: var(--white); border-bottom: 2px solid var(--border);
+      padding: 16px 6%; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 4px 15px rgba(217, 133, 167, 0.08);
+    }
+    .header-top { display: flex; align-items: center; justify-content: space-between; gap: 25px; margin-bottom: 14px; }
+    .logo-container { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .logo-container img { height: 42px; width: 42px; object-fit: cover; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .logo { font-size: 24px; font-weight: bold; color: var(--pink-dark); letter-spacing: 1px; }
+    .logo span { display: block; font-size: 11px; color: var(--text-muted); font-weight: normal; }
+
+    .search-container { position: relative; flex: 1; max-width: 550px; }
+    .search-bar input {
+      width: 100%; background: var(--pink-pale); border: 1.5px solid var(--border);
+      border-radius: 25px; padding: 12px 20px; outline: none; font-size: 15px;
+    }
+    .header-actions { display: flex; align-items: center; gap: 18px; position: relative; }
+    .lang-select { border: none; background: transparent; font-size: 15px; font-weight: bold; cursor: pointer; outline: none; }
+    .icon-btn {
+      background: var(--pink-pale); border: 1px solid var(--border); width: 44px; height: 44px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; position: relative;
+    }
+    .notif-badge {
+      position: absolute; top: -2px; right: -2px; background: var(--red); color: white;
+      width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .avatar-btn {
+      width: 46px; height: 46px; border-radius: 50%; background: var(--pink-pastel);
+      color: var(--pink-dark); font-weight: bold; display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--border); cursor: pointer; font-size: 17px;
+    }
+    .user-dropdown {
+      position: absolute; top: 56px; right: 0; width: 260px; background: var(--white);
+      border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      display: none; flex-direction: column; z-index: 200; overflow: hidden;
+    }
+    .user-dropdown.show { display: flex; }
+    .user-dropdown-header { padding: 14px; background: var(--pink-pale); display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+    .dropdown-avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--pink-main); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .dropdown-menu-list { list-style: none; padding: 6px 0; }
+    .dropdown-menu-list li a { display: flex; align-items: center; gap: 10px; padding: 10px 18px; color: var(--text-dark); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .dropdown-menu-list li a:hover { background: var(--pink-pastel); color: var(--pink-dark); }
+    .dropdown-menu-list li a.logout-btn { color: var(--red); font-weight: bold; border-top: 1px solid var(--border); margin-top: 4px; padding-top: 12px; }
+
+    .header-bottom { border-top: 1px dashed var(--border); padding-top: 10px; }
+    nav { display: flex; gap: 12px; align-items: center; }
+    nav a {
+      border: none; background: transparent; color: var(--text-dark); text-decoration: none;
+      padding: 10px 20px; border-radius: 12px; font-weight: bold; transition: all 0.2s; font-size: 16px;
+    }
+    nav a:hover, nav a.active { background: var(--pink-pastel); color: var(--pink-dark); }
+
+    main { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+    .panel { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 30px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-group label { font-weight: bold; font-size: 14px; }
+    .form-group input, .form-group textarea { border: 1px solid var(--border); border-radius: 10px; padding: 12px; outline: none; }
+    .btn { border: none; border-radius: 10px; padding: 12px 20px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%; }
+    .btn-primary { background: var(--pink-main); color: white; }
+    .btn-primary:hover { background: var(--pink-dark); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-top">
+      <div class="logo-container" onclick="location.href='index.html'">
+        <img src="https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmFkZGY0NGY5NjI4ODE5MWE4NjdkNTg2MmI4YjczZjA6ZmlsZV8wMDAwMDAwMGE2MDg4MjExODc1ODFjNmUwZTFiOGVhMSIsImdpem1vX2lkIjpudWxsLCJ3aWQiOm51bGwsIm9pZCI6bnVsbCwic2lkIjpudWxsLCJjcyI6bnVsbCwiZm4iOm51bGwsImNkIjpudWxsLCJ0cyI6IjIwNzUxIiwicCI6InB5aSIsImNpZCI6IjEiLCJzaWciOiI4MTEzZmFhMDYzOGE3NmUxYzBiOWMwNjVkOTAzNmY3MGI4NDc3YTlkNGE0ZDg0MzczZDEwYzI1ZDdiY2JiM2MzIiwidiI6IjAiLCJjZG4iOm51bGwsImNwIjpudWxsLCJtYSI6bnVsbH0=" alt="Logo">
+        <div class="logo">SELLER PRO <span>MANAGEMENT SYSTEM</span></div>
+      </div>
+
+      <div class="search-container">
+        <div class="search-bar">
+          <input type="text" placeholder="Search help topics...">
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <select class="lang-select">
+          <option>Tiếng Việt ∨</option>
+          <option>English ∨</option>
+        </select>
+        <button class="icon-btn">🔔 <span class="notif-badge">2</span></button>
+        <div class="avatar-btn" onclick="toggleUserDropdown(event)">SH</div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-header">
+            <div class="dropdown-avatar">SH</div>
+            <div class="dropdown-info">
+              <h4>My Fashion Store</h4>
+              <p>seller@system.com</p>
+            </div>
+          </div>
+          <ul class="dropdown-menu-list">
+            <li><a href="shop.html">📱 Cửa hàng của tôi</a></li>
+            <li><a href="orders.html">📋 Quản lý đơn hàng</a></li>
+            <li><a href="Sign%20in.html" class="logout-btn">↪ Đăng xuất</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-bottom">
+      <nav>
+        <a href="index.html">Trang chủ</a>
+        <a href="shop.html">🏪 Cửa hàng & Sản phẩm</a>
+        <a href="orders.html">📦 Đơn hàng</a>
+        <a href="ticket.html" class="active">🎫 Ticket Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="panel">
+      <div style="text-align: center; margin-bottom: 25px;">
+        <h2 style="color: var(--pink-dark);">Liên hệ & Phản hồi Admin</h2>
+        <p style="color: var(--text-muted); font-size: 14px;">Gửi yêu cầu hỗ trợ, khiếu nại hoặc báo lỗi hệ thống.</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); alert('Gửi Ticket hỗ trợ thành công!'); this.reset();">
+        <div class="form-group">
+          <label>Chủ đề hỗ trợ</label>
+          <input type="text" placeholder="Nhập chủ đề..." required>
+        </div>
+        <div class="form-group">
+          <label>Nội dung chi tiết</label>
+          <textarea rows="5" placeholder="Mô tả vấn đề của bạn..." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">🚀 Gửi Yêu Cầu Hỗ Trợ</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    function toggleUserDropdown(e) {
+      if(e) e.stopPropagation();
+      document.getElementById("userDropdown").classList.toggle("show");
+    }
+    window.onclick = function() { document.getElementById("userDropdown").classList.remove('show'); }
+  </script>
+</body>
+</html>

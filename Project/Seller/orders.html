@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Pro - Quản Lý Đơn Hàng</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="/assets/js/core/api.js"></script>
+  <style>
+    :root {
+      --pink-main: #d985a7; --pink-dark: #b95f84; --pink-pastel: #f8dce7;
+      --pink-pale: #fff7fa; --white: #ffffff; --text-dark: #4a3b43;
+      --text-muted: #8a727d; --border: #efd5e0; --red: #e74c3c; --green: #2ecc71;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: var(--pink-pale); color: var(--text-dark); line-height: 1.5; }
+    button { cursor: pointer; }
+
+    header {
+      background: var(--white); border-bottom: 2px solid var(--border);
+      padding: 16px 6%; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 4px 15px rgba(217, 133, 167, 0.08);
+    }
+    .header-top { display: flex; align-items: center; justify-content: space-between; gap: 25px; margin-bottom: 14px; }
+    .logo-container { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .logo-container img { height: 42px; width: 42px; object-fit: cover; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .logo { font-size: 24px; font-weight: bold; color: var(--pink-dark); letter-spacing: 1px; }
+    .logo span { display: block; font-size: 11px; color: var(--text-muted); font-weight: normal; }
+
+    .search-container { position: relative; flex: 1; max-width: 550px; }
+    .search-bar input {
+      width: 100%; background: var(--pink-pale); border: 1.5px solid var(--border);
+      border-radius: 25px; padding: 12px 20px; outline: none; font-size: 15px;
+    }
+    .header-actions { display: flex; align-items: center; gap: 18px; position: relative; }
+    .lang-select { border: none; background: transparent; font-size: 15px; font-weight: bold; cursor: pointer; outline: none; }
+    .icon-btn {
+      background: var(--pink-pale); border: 1px solid var(--border); width: 44px; height: 44px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; position: relative;
+    }
+    .notif-badge {
+      position: absolute; top: -2px; right: -2px; background: var(--red); color: white;
+      width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .avatar-btn {
+      width: 46px; height: 46px; border-radius: 50%; background: var(--pink-pastel);
+      color: var(--pink-dark); font-weight: bold; display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--border); cursor: pointer; font-size: 17px;
+    }
+    .user-dropdown {
+      position: absolute; top: 56px; right: 0; width: 260px; background: var(--white);
+      border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      display: none; flex-direction: column; z-index: 200; overflow: hidden;
+    }
+    .user-dropdown.show { display: flex; }
+    .user-dropdown-header { padding: 14px; background: var(--pink-pale); display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+    .dropdown-avatar { width: 45px; height: 45px; border-radius: 50%; background: var(--pink-main); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .dropdown-menu-list { list-style: none; padding: 6px 0; }
+    .dropdown-menu-list li a { display: flex; align-items: center; gap: 10px; padding: 10px 18px; color: var(--text-dark); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .dropdown-menu-list li a:hover { background: var(--pink-pastel); color: var(--pink-dark); }
+    .dropdown-menu-list li a.logout-btn { color: var(--red); font-weight: bold; border-top: 1px solid var(--border); margin-top: 4px; padding-top: 12px; }
+
+    .header-bottom { border-top: 1px dashed var(--border); padding-top: 10px; }
+    nav { display: flex; gap: 12px; align-items: center; }
+    nav a {
+      border: none; background: transparent; color: var(--text-dark); text-decoration: none;
+      padding: 10px 20px; border-radius: 12px; font-weight: bold; transition: all 0.2s; font-size: 16px;
+    }
+    nav a:hover, nav a.active { background: var(--pink-pastel); color: var(--pink-dark); }
+
+    main { max-width: 1250px; margin: 30px auto; padding: 0 20px; }
+    .panel { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+    .btn { border: none; border-radius: 10px; padding: 10px 18px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    /* ===== Patch 04: quản lý đơn hàng ===== */
+    .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat-card { background: var(--pink-pale); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+    .stat-card b { display: block; font-size: 22px; color: var(--pink-dark); }
+    .stat-card span { font-size: 12px; color: var(--text-muted); }
+    .low-stock { background: #fff4e5; border: 1px solid #f3d9a8; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; }
+    .low-stock b { color: #a86a00; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; border-bottom: 1px dashed var(--border); padding-bottom: 12px; }
+    .tab { border: 1px solid var(--border); background: var(--white); color: var(--text-dark); border-radius: 20px; padding: 8px 16px; font-weight: bold; font-size: 14px; }
+    .tab.active { background: var(--pink-main); color: var(--white); border-color: var(--pink-main); }
+    .tab-count { display: inline-block; min-width: 22px; padding: 0 6px; margin-left: 4px; border-radius: 11px; background: rgba(0,0,0,0.08); font-size: 12px; text-align: center; }
+    .order-card { background: var(--pink-pale); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; }
+    .order-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+    .order-head h4 { color: var(--pink-dark); }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; color: #fff; }
+    .badge-pending { background: #c98a1b; } .badge-processing { background: #c0573a; } .badge-shipping { background: #4a3b43; }
+    .badge-completed { background: #2e7d5b; } .badge-cancelled { background: #b3261e; }
+    .order-meta { font-size: 13px; color: var(--text-muted); margin: 2px 0; }
+    .order-items { margin: 10px 0; border-top: 1px dashed var(--border); padding-top: 10px; }
+    .order-item { display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 6px; }
+    .order-item img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; background: var(--pink-pastel); }
+    .order-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .order-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-ok { background: var(--green); color: #fff; }
+    .btn-danger-soft { background: #fee2e2; color: var(--red); }
+    .btn-ghost { background: var(--white); color: var(--pink-dark); border: 1px solid var(--border); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .state-box { text-align: center; padding: 30px 10px; color: var(--text-muted); }
+    .seller-toast { position: fixed; bottom: 24px; right: 24px; background: var(--text-dark); color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 14px; max-width: 360px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; }
+    .seller-toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-top">
+      <div class="logo-container" onclick="location.href='index.html'">
+        <img src="https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmFkZGY0NGY5NjI4ODE5MWE4NjdkNTg2MmI4YjczZjA6ZmlsZV8wMDAwMDAwMGE2MDg4MjExODc1ODFjNmUwZTFiOGVhMSIsImdpem1vX2lkIjpudWxsLCJ3aWQiOm51bGwsIm9pZCI6bnVsbCwic2lkIjpudWxsLCJjcyI6bnVsbCwiZm4iOm51bGwsImNkIjpudWxsLCJ0cyI6IjIwNzUxIiwicCI6InB5aSIsImNpZCI6IjEiLCJzaWciOiI4MTEzZmFhMDYzOGE3NmUxYzBiOWMwNjVkOTAzNmY3MGI4NDc3YTlkNGE0ZDg0MzczZDEwYzI1ZDdiY2JiM2MzIiwidiI6IjAiLCJjZG4iOm51bGwsImNwIjpudWxsLCJtYSI6bnVsbH0=" alt="Logo">
+        <div class="logo">SELLER PRO <span>MANAGEMENT SYSTEM</span></div>
+      </div>
+
+      <div class="search-container">
+        <div class="search-bar">
+          <input type="text" placeholder="Search orders, customers...">
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <select class="lang-select">
+          <option>Tiếng Việt ∨</option>
+          <option>English ∨</option>
+        </select>
+        <button class="icon-btn">🔔 <span class="notif-badge">2</span></button>
+        <div class="avatar-btn" id="avatarBtn" onclick="toggleUserDropdown(event)">SH</div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-header">
+            <div class="dropdown-avatar" id="dropdownAvatar">SH</div>
+            <div class="dropdown-info">
+              <h4 id="shopNameHeader">My Fashion Store</h4>
+              <p id="sellerEmailHeader">seller@system.com</p>
+            </div>
+          </div>
+          <ul class="dropdown-menu-list">
+            <li><a href="shop.html">📱 Cửa hàng của tôi</a></li>
+            <li><a href="orders.html">📋 Quản lý đơn hàng</a></li>
+            <li><a href="#" class="logout-btn" onclick="signOut(event)">↪ Đăng xuất</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-bottom">
+      <nav>
+        <a href="index.html">Trang chủ</a>
+        <a href="shop.html">🏪 Cửa hàng & Sản phẩm</a>
+        <a href="orders.html" class="active">📦 Đơn hàng</a>
+        <a href="dashboard.html">📊 Thống kê & AI</a>
+        <a href="ticket.html">🎫 Ticket Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="panel">
+      <h2 style="color: var(--pink-dark); margin-bottom: 20px;"><i class="fa-solid fa-clipboard-list mr-2"></i> Quản Lý Đơn Hàng</h2>
+
+      <div class="stat-row" id="statRow"></div>
+      <div class="low-stock" id="lowStockBox" style="display: none;"></div>
+
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="pending">Chờ xác nhận <span class="tab-count" id="cnt-pending">0</span></button>
+        <button class="tab" data-tab="processing">Đang xử lý <span class="tab-count" id="cnt-processing">0</span></button>
+        <button class="tab" data-tab="shipping">Đang giao <span class="tab-count" id="cnt-shipping">0</span></button>
+        <button class="tab" data-tab="history">Lịch sử <span class="tab-count" id="cnt-history">0</span></button>
+      </div>
+
+      <div id="orderList"></div>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin-bottom: 12px; font-size: 16px;"><i class="fa-solid fa-map-location-dot text-brand-main"></i> Bản Đồ Giao Hàng & Định Vị Cự Ly</h3>
+      <p id="mapNote" class="order-meta" style="margin-bottom: 10px;">Bấm "Xem bản đồ" ở một đơn hàng để xem vị trí cửa hàng và nơi giao.</p>
+      <div id="map" style="width: 100%; height: 350px; border-radius: 12px; border: 1px solid var(--border);"></div>
+    </div>
+  </main>
+
+  <div class="seller-toast" id="sellerToast"></div>
+
+  <script>
+    function toggleUserDropdown(e) {
+      if(e) e.stopPropagation();
+      document.getElementById("userDropdown").classList.toggle("show");
+    }
+    window.onclick = function() { document.getElementById("userDropdown").classList.remove('show'); }
+
+    // ===== Patch 04: đơn hàng thật từ server =====
+    const STATUS_LABEL = { pending: "Chờ xác nhận", processing: "Đang xử lý", shipping: "Đang giao", completed: "Hoàn tất", cancelled: "Đã hủy" };
+    // Nút chuyển trạng thái theo luật mục 10.1. Hủy đơn đang xử lý sẽ hoàn lại tồn kho
+    const ACTIONS = {
+      pending: [
+        { to: "processing", label: "Xác nhận đơn", kind: "btn-ok" },
+        { to: "cancelled", label: "Hủy", kind: "btn-danger-soft", ask: "Hủy đơn hàng này?" }
+      ],
+      processing: [
+        { to: "shipping", label: "Bắt đầu giao", kind: "btn-ok" },
+        { to: "cancelled", label: "Hủy đơn", kind: "btn-danger-soft", ask: "Hủy đơn đang xử lý? Tồn kho sẽ được hoàn lại." }
+      ],
+      shipping: [
+        { to: "completed", label: "Đã giao thành công", kind: "btn-ok" }
+      ]
+    };
+
+    let currentTab = "pending";
+    let currentOrders = [];
+    let myShop = null;
+    let map = null, mapLayer = null;
+    let busy = false;
+
+    function money(n) { return Number(n).toLocaleString("vi-VN") + " VNĐ"; }
+    function timeText(iso) {
+      return new Date(iso).toLocaleString("vi-VN", {
+        timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric"
+      });
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById("sellerToast");
+      el.innerText = msg;
+      el.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove("show"), 3500);
+    }
+
+    // Hết phiên (401) thì về trang đăng nhập, lỗi khác thì báo bằng toast
+    function handleError(err) {
+      if (err.status === 401) { window.location.href = LOGIN_PAGE; return; }
+      showToast(err.message);
+    }
+
+    function signOut(e) {
+      if (e) e.preventDefault();
+      clearSession();
+      window.location.href = LOGIN_PAGE;
+    }
+
+    async function loadStats() {
+      try {
+        const s = await api("/seller/stats");
+        const by = s.orders_by_status;
+        document.getElementById("cnt-pending").innerText = by.pending;
+        document.getElementById("cnt-processing").innerText = by.processing;
+        document.getElementById("cnt-shipping").innerText = by.shipping;
+        document.getElementById("cnt-history").innerText = by.completed + by.cancelled;
+        const cards = [
+          ["Chờ xác nhận", by.pending], ["Đang xử lý", by.processing], ["Đang giao", by.shipping],
+          ["Hoàn tất", by.completed], ["Đã hủy", by.cancelled],
+          ["Tổng tồn kho", s.total_stock], ["Tổng đã bán", s.total_sold], ["Sản phẩm chờ duyệt", s.pending_products]
+        ];
+        document.getElementById("statRow").innerHTML = cards.map(c =>
+          `<div class="stat-card"><b>${escapeHtml(c[1])}</b><span>${escapeHtml(c[0])}</span></div>`).join("");
+
+        const box = document.getElementById("lowStockBox");
+        if (s.low_stock.length === 0) {
+          box.style.display = "none";
+        } else {
+          box.style.display = "block";
+          box.innerHTML = "<b>⚠ Sắp hết hàng:</b> " + s.low_stock.slice(0, 8).map(i =>
+            `${escapeHtml(i.name)} (${escapeHtml(i.size)}, ${escapeHtml(i.color)}): còn ${i.stock}`).join(" &nbsp;|&nbsp; ");
+        }
+      } catch (err) {
+        handleError(err);
+      }
+    }
+
+    async function loadOrders() {
+      const list = document.getElementById("orderList");
+      list.innerHTML = '<div class="state-box">Đang tải...</div>';
+      try {
+        const data = await api("/seller/orders?status=" + currentTab);
+        currentOrders = data.items;
+        renderOrders();
+      } catch (err) {
+        if (err.status === 401) return handleError(err);
+        list.innerHTML = `<div class="state-box">${escapeHtml(err.message)}<br><button class="btn btn-ghost" data-act="retry" style="margin-top:10px;">Thử lại</button></div>`;
+      }
+    }
+
+    function orderCard(o) {
+      const items = o.items.map(i => `
+        <div class="order-item">
+          <img src="${escapeHtml(i.image_url || "")}" alt="${escapeHtml(i.product_name)}">
+          <div>${escapeHtml(i.product_name)}<div class="order-meta">${escapeHtml(i.size)} / ${escapeHtml(i.color)} x ${i.quantity} · ${money(i.price)}</div></div>
+        </div>`).join("");
+      const actions = (ACTIONS[o.status] || []).map(a =>
+        `<button class="btn ${a.kind}" data-act="status" data-id="${o.id}" data-to="${a.to}" data-ask="${escapeHtml(a.ask || "")}">${a.label}</button>`).join("");
+      const eta = o.expected_at ? timeText(o.expected_at) : "Chưa xác định";
+      const km = o.distance_km != null ? o.distance_km + " km" : "Chưa xác định";
+      return `
+        <div class="order-card">
+          <div class="order-head">
+            <h4>Đơn hàng #${o.id}</h4>
+            <span class="badge badge-${o.status}">${STATUS_LABEL[o.status]}</span>
+          </div>
+          <div class="order-meta">Đặt lúc ${timeText(o.created_at)} · ${o.payment_method === "cod" ? "COD" : "Thẻ (mô phỏng)"} (${o.payment_status === "paid" ? "đã thanh toán" : "chưa thanh toán"})</div>
+          <div class="order-meta">Người nhận: <b>${escapeHtml(o.receiver_name)}</b> · ${escapeHtml(o.phone)} · ${escapeHtml(o.address)}</div>
+          <div class="order-meta">Tài khoản mua: ${escapeHtml(o.buyer ? o.buyer.name : "")} · Khoảng cách: ${km} · Dự kiến giao: ${eta}</div>
+          <div class="order-items">${items}</div>
+          <div class="order-foot">
+            <b>Tổng: ${money(o.total)}</b>
+            <div class="order-actions">
+              <button class="btn btn-ghost" data-act="map" data-id="${o.id}">📍 Xem bản đồ</button>
+              ${actions}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderOrders() {
+      const list = document.getElementById("orderList");
+      if (currentOrders.length === 0) {
+        list.innerHTML = '<div class="state-box">Chưa có đơn hàng nào ở mục này.</div>';
+        return;
+      }
+      list.innerHTML = currentOrders.map(orderCard).join("");
+    }
+
+    async function changeStatus(orderId, to, ask) {
+      if (busy) return;
+      if (ask && !window.confirm(ask)) return;
+      busy = true;
+      document.querySelectorAll("#orderList button").forEach(b => b.disabled = true);
+      try {
+        await api(`/seller/orders/${orderId}/status`, { method: "PATCH", body: { status: to } });
+        showToast(`Đơn #${orderId}: ${STATUS_LABEL[to].toLowerCase()}.`);
+      } catch (err) {
+        handleError(err);
+      }
+      busy = false;
+      await Promise.all([loadStats(), loadOrders()]);
+    }
+
+    function ensureMap() {
+      if (typeof L === "undefined") return false;   // thư viện bản đồ chưa tải được (mất mạng)
+      if (!map) {
+        map = L.map("map").setView([10.7769, 106.7009], 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
+        mapLayer = L.layerGroup().addTo(map);
+      }
+      return true;
+    }
+
+    function showMap(order) {
+      const note = document.getElementById("mapNote");
+      if (!ensureMap()) {
+        note.innerText = "Không tải được thư viện bản đồ. Kiểm tra kết nối mạng rồi tải lại trang.";
+        return;
+      }
+      mapLayer.clearLayers();
+      const shop = myShop && myShop.lat != null ? [myShop.lat, myShop.lng] : null;
+      const dest = order && order.lat != null ? [order.lat, order.lng] : null;
+      const points = [];
+      if (shop) { L.marker(shop).addTo(mapLayer).bindPopup("Cửa hàng"); points.push(shop); }
+      if (dest) { L.marker(dest).addTo(mapLayer).bindPopup("Khách hàng: " + escapeHtml(order.receiver_name)); points.push(dest); }
+      if (shop && dest) L.polyline([shop, dest], { color: "#D985A7", weight: 4 }).addTo(mapLayer);
+
+      if (order) {
+        note.innerText = dest
+          ? `Đơn #${order.id}: cách shop khoảng ${order.distance_km} km (ước tính theo đường đi).`
+          : `Đơn #${order.id} chưa có vị trí giao vì người mua không chia sẻ vị trí khi đặt hàng.`;
+      }
+      if (points.length === 2) map.fitBounds(points, { padding: [40, 40] });
+      else if (points.length === 1) map.setView(points[0], 14);
+      if (order) document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    // Một chỗ bắt mọi cú bấm trong danh sách đơn (dữ liệu nằm trong data-*, không nhúng vào onclick)
+    document.getElementById("orderList").addEventListener("click", e => {
+      const btn = e.target.closest("button[data-act]");
+      if (!btn) return;
+      if (btn.dataset.act === "retry") loadOrders();
+      if (btn.dataset.act === "status") changeStatus(Number(btn.dataset.id), btn.dataset.to, btn.dataset.ask);
+      if (btn.dataset.act === "map") showMap(currentOrders.find(o => o.id === Number(btn.dataset.id)));
+    });
+
+    document.getElementById("tabs").addEventListener("click", e => {
+      const tab = e.target.closest(".tab");
+      if (!tab) return;
+      currentTab = tab.dataset.tab;
+      document.querySelectorAll("#tabs .tab").forEach(t => t.classList.toggle("active", t === tab));
+      loadOrders();
+    });
+
+    document.addEventListener("DOMContentLoaded", async function() {
+      const me = requireRole("seller");   // chưa đăng nhập hoặc sai vai trò thì về trang đăng nhập
+      if (!me) return;
+      document.getElementById("sellerEmailHeader").innerText = me.email;
+      try {
+        myShop = await api("/seller/shop");
+        const initials = myShop.name.trim().slice(0, 2).toUpperCase();
+        document.getElementById("shopNameHeader").innerText = myShop.name;
+        document.getElementById("avatarBtn").innerText = initials;
+        document.getElementById("dropdownAvatar").innerText = initials;
+      } catch (err) {
+        handleError(err);
+      }
+      showMap(null);
+      await Promise.all([loadStats(), loadOrders()]);
+    });
+  </script>
+</body>
+</html>

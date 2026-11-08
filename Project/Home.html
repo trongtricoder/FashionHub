@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ - Thế giới Thời trang</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { pastel: '#F8DCE7', main: '#D985A7', light: '#FFF7FA' } }
+            }
+        }
+    </script>
+    <style>
+        .animate-fade-up {
+            animation: fadeUp 1.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        .delay-100 { animation-delay: 0.3s; }
+        .delay-200 { animation-delay: 0.6s; }
+        
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-light font-sans text-gray-800">
+    <!-- Header -->
+    <header class="fixed top-0 w-full bg-white/80 backdrop-blur-md shadow-sm z-50 flex items-center justify-between px-6 py-3">
+        <div class="flex items-center gap-3">
+            <img src="https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmFkZGY0NGY5NjI4ODE5MWE4NjdkNTg2MmI4YjczZjA6ZmlsZV8wMDAwMDAwMGE2MDg4MjExODc1ODFjNmUwZTFiOGVhMSIsImdpem1vX2lkIjpudWxsLCJ3aWQiOm51bGwsIm9pZCI6bnVsbCwic2lkIjpudWxsLCJjcyI6bnVsbCwiZm4iOm51bGwsImNkIjpudWxsLCJ0cyI6IjIwNzUxIiwicCI6InB5aSIsImNpZCI6IjEiLCJzaWciOiI4MTEzZmFhMDYzOGE3NmUxYzBiOWMwNjVkOTAzNmY3MGI4NDc3YTlkNGE0ZDg0MzczZDEwYzI1ZDdiY2JiM2MzIiwidiI6IjAiLCJjZG4iOm51bGwsImNwIjpudWxsLCJtYSI6bnVsbH0=" 
+                 alt="Logo" class="h-12 w-12 object-cover rounded-full shadow-sm">
+            <span class="text-xl font-bold text-main tracking-wider">FashionHub</span>
+        </div>
+        <a href="Sign in.html" class="px-6 py-2 bg-main text-white font-semibold rounded-full hover:bg-pink-500 transition-all shadow-md transform hover:scale-105">
+            Đăng nhập / Đăng ký
+        </a>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="h-screen w-full bg-cover bg-center flex items-center justify-center relative" 
+             style="background-image: url('https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmFkZGY1NWU2N2FjODE5MTlhNWQ0ZGQyYmU1NmI4NDM6ZmlsZV8wMDAwMDAwMDNiNDg4MjExOGM4YTNjYTI3M2M4YWQ3OCIsImdpem1vX2lkIjpudWxsLCJ3aWQiOm51bGwsIm9pZCI6bnVsbCwic2lkIjpudWxsLCJjcyI6bnVsbCwiZm4iOm51bGwsImNkIjpudWxsLCJ0cyI6IjIwNzUxIiwicCI6InB5aSIsImNpZCI6IjEiLCJzaWciOiJiNzBkMDY4MmNiYjViMDY1ODA0MDFiZjczMjhlZDNlYmM2OWE5MjE5NWY2ZTBjZDMxNGMxMDBlOWJiODdmZDY4IiwidiI6IjAiLCJjZG4iOm51bGwsImNwIjpudWxsLCJtYSI6bnVsbH0=');">
+        <!-- Overlay để làm nổi chữ -->
+        <div class="absolute inset-0 bg-white/30 backdrop-blur-[2px]"></div>
+        
+        <div class="relative z-10 text-center px-4 max-w-3xl">
+            <h1 class="text-5xl md:text-7xl font-extrabold text-gray-800 drop-shadow-lg mb-4 animate-fade-up">
+                Chào mừng bạn đến với <br>
+                <span class="text-main">Thế giới Thời trang</span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-700 font-medium mb-8 animate-fade-up delay-100 bg-white/50 inline-block px-4 py-2 rounded-lg">
+                Nơi khởi nguồn phong cách và đánh thức vẻ đẹp của riêng bạn.
+            </p>
+            <div class="animate-fade-up delay-200">
+                <a href="Sign in.html" class="inline-block px-8 py-4 bg-gray-800 text-white text-lg font-bold rounded-full shadow-xl hover:bg-main transition-colors duration-300 transform hover:-translate-y-1">
+                    Khám phá ngay &rarr;
+                </a>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
