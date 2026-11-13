@@ -1126,7 +1126,7 @@
                 >
               </li>
               <li>
-                <a href="Sign%20in.html" class="logout-btn" onclick="logout()"
+                <a href="Signin.html" class="logout-btn" onclick="logout()"
                   >↪ <span data-i18n="menu_logout">Đăng xuất</span></a
                 >
               </li>
@@ -1178,6 +1178,7 @@
             cá nhân ấn tượng ngay hôm nay!
           </p>
           <button
+            id="changePasswordSubmitBtn"
             class="btn btn-primary"
             style="padding: 14px 30px; font-size: 16px"
             onclick="
@@ -3768,6 +3769,10 @@
         const c = document.getElementById("confP").value;
         if (!o || !n || !c) return showToast("Vui lòng điền đầy đủ mật khẩu!");
         if (n !== c) return showToast("Mật khẩu xác nhận không trùng khớp!");
+        if (n === o) return showToast("Mật khẩu mới phải khác mật khẩu hiện tại.");
+        const button = document.getElementById("changePasswordSubmitBtn");
+        button.disabled = true;
+        button.textContent = "Đang cập nhật...";
         try {
           await api("/me/change-password", {
             method: "POST",
@@ -3782,6 +3787,9 @@
           setTimeout(() => (window.location.href = LOGIN_PAGE), 1200);
         } catch (err) {
           handleApiError(err);
+        } finally {
+          button.disabled = false;
+          button.textContent = "Cập nhật mật khẩu";
         }
       }
 
@@ -4341,7 +4349,7 @@
 
       function logout() {
         clearSession();
-        window.location.href = "/Sign%20in.html";
+        window.location.href = LOGIN_PAGE;
       }
     </script>
   </body>

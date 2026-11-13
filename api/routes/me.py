@@ -132,7 +132,8 @@ def change_password():
     except Exception:
         current_app.logger.exception("Đổi mật khẩu thất bại")
         return fail("PASSWORD_FAILED", "Không đổi được mật khẩu, vui lòng thử lại.", 502)
-    db.table("profiles").update({"must_change_password": False}).eq("id", g.user["id"]).execute()
+    if g.user.get("must_change_password"):
+        db.table("profiles").update({"must_change_password": False}).eq("id", g.user["id"]).execute()
     return ok({})
 
 

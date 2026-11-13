@@ -3,7 +3,7 @@
 // Không gọi fetch trực tiếp ở nơi khác (quy ước mục 6.2).
 
 const SESSION_KEY = "fashionshop_session";
-const LOGIN_PAGE = "/Sign%20in.html";
+const LOGIN_PAGE = "/Signin.html";
 
 // Phiên đăng nhập lưu ở localStorage: { access_token, refresh_token, expires_at, me }
 function getSession() {
@@ -71,8 +71,9 @@ async function api(path, { method = "GET", body, auth = true } = {}) {
       code: "UNKNOWN",
       message: "Có lỗi xảy ra, vui lòng thử lại.",
     };
-    // Token hết hạn: xóa phiên, lần tải trang sau sẽ được đưa về trang đăng nhập
-    if (res.status === 401 && auth) clearSession();
+    // Chỉ xóa phiên khi token không hợp lệ; các lỗi xác thực nghiệp vụ như sai mật khẩu cũ không làm mất phiên.
+    if (res.status === 401 && auth && error.code === "UNAUTHENTICATED")
+      clearSession();
     throw Object.assign(new Error(error.message), {
       code: error.code,
       status: res.status,

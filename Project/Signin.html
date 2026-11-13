@@ -241,9 +241,13 @@
                 const session = await api('/auth/login', { method: 'POST', auth: false,
                     body: { identifier: username, password } });
                 saveSession(session);
+                if (session.me.must_change_password) {
+                    window.location.href = 'change-password.html';
+                    return;
+                }
                 const role = session.me.role;
                 if (role === 'buyer') window.location.href = 'Buyer.html';
-                else if (role === 'seller') window.location.href = 'seller/index.html';
+                else if (role === 'seller') window.location.href = 'Seller/index.html';
                 else window.location.href = 'Admin.html';
             } catch (err) {
                 document.getElementById('alert-message').textContent = err.message;
