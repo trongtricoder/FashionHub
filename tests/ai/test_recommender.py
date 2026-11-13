@@ -5,9 +5,10 @@ from ai.recommender import score, size_chart
 
 
 def candidate(pid=1, shop=1, name="Áo thun basic", price=250000, tags=("toi-gian", "basic"), shapes=("hourglass", "pear"),
-              sold=5, avg=4.5, count=2, sizes=("L", "M")):
+              sold=5, avg=4.5, count=2, sizes=("L", "M"), target_gender="unisex"):
     return {"id": pid, "shop_id": shop, "name": name, "price": price, "tags": list(tags), "suits_shapes": list(shapes),
-            "sold_count": sold, "rating_avg": avg, "rating_count": count, "sizes": set(sizes)}
+            "sold_count": sold, "rating_avg": avg, "rating_count": count, "sizes": set(sizes),
+            "target_gender": target_gender}
 
 
 PROFILE = {"height_cm": 170, "weight_kg": 60, "body_shape": "hourglass", "style_tags": ["toi-gian", "cong-so"],
@@ -133,6 +134,16 @@ def test_sap_xep_theo_diem_roi_ban_chay_roi_id():
     assert [r["id"] for r in result] == [1, 2]
     same_a, same_b = candidate(pid=7, shop=1, sold=5), candidate(pid=3, shop=2, sold=5)
     assert [r["id"] for r in score.recommend(PROFILE, [same_a, same_b], limit=5)] == [3, 7]       # bằng điểm thì id nhỏ trước
+
+
+def test_recommend_loc_dung_gioi_tinh_va_van_nhan_hang_unisex():
+    candidates = [
+        candidate(pid=1, target_gender="female"),
+        candidate(pid=2, target_gender="male"),
+        candidate(pid=3, target_gender="unisex"),
+    ]
+    assert [r["id"] for r in score.recommend(dict(PROFILE, model_gender="male"), candidates, limit=5)] == [2, 3]
+    assert [r["id"] for r in score.recommend(dict(PROFILE, model_gender="female"), candidates, limit=5)] == [1, 3]
 
 
 def test_moi_shop_toi_da_3_san_pham():

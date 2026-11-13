@@ -123,6 +123,13 @@ def test_them_san_pham_tot_duoc_dang_ngay(client, db):
     assert db.tables["moderation_queue"] == [] and db.tables["ai_block_logs"] == []
 
 
+def test_them_san_pham_luu_doi_tuong_gioi_tinh(client, db):
+    res = create(client, target_gender="male")
+    saved = res.get_json()["data"]["product"]
+    assert res.status_code == 201 and saved["target_gender"] == "male"
+    assert row(db, "products", id=saved["id"])[0]["target_gender"] == "male"
+
+
 def test_them_san_pham_nghi_ngo_vao_hang_doi(client, db):
     res = create(client, price=5000, images=[])    # giá bất thường 25 + không ảnh 20 = 45
     data = res.get_json()["data"]
@@ -161,7 +168,7 @@ def test_trung_ten_voi_shop_khac_bi_cong_diem(client):
     {"variants": []}, {"variants": [{"size": "M", "color": "Đen", "stock": -1}]},
     {"variants": [{"size": "M", "color": "Đen", "stock": 1}, {"size": "m", "color": "ĐEN", "stock": 2}]},
     {"images": [{"url": "https://i/%d.jpg" % i} for i in range(9)]}, {"images": [{"url": "ftp://x/y.jpg"}]},
-    {"suits_shapes": ["tron"]}, {"tags": "abc"}, {"description": "x" * 2001},
+    {"suits_shapes": ["tron"]}, {"target_gender": "other"}, {"tags": "abc"}, {"description": "x" * 2001},
 ])
 def test_du_lieu_san_pham_sai_tra_400(client, db, patch):
     res = create(client, **patch)

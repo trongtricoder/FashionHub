@@ -5,6 +5,7 @@ import unicodedata
 CATEGORIES = ("ao", "quan", "vay-dam", "phu-kien")
 SHAPES = ("pear", "hourglass", "rectangle", "apple", "inverted_triangle")
 MODEL_GENDERS = ("female", "male")
+TARGET_GENDERS = ("female", "male", "unisex")
 
 MAX_VARIANTS = 30
 MAX_IMAGES = 8
@@ -63,6 +64,9 @@ def parse_product(body):
     category = body.get("category")
     if category not in CATEGORIES:
         raise InputError("Danh mục không hợp lệ.")
+    target_gender = body.get("target_gender", "unisex")
+    if target_gender not in TARGET_GENDERS:
+        raise InputError("Đối tượng giới tính không hợp lệ.")
 
     raw_tags = body.get("tags") or []
     if not isinstance(raw_tags, list):
@@ -115,6 +119,7 @@ def parse_product(body):
         "description": _text(body.get("description"), "Mô tả", 2000),
         "price": _int(body.get("price"), "Giá", 0, MAX_PRICE),
         "category": category,
+        "target_gender": target_gender,
         "tags": tags,
         "suits_shapes": list(dict.fromkeys(shapes)),
         "variants": variants,

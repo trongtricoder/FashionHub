@@ -74,7 +74,9 @@ def _product_detail(db, product):
     images = db.table("product_images").select("url,is_main,position").eq("product_id", product["id"]).order("position").execute().data
     return {
         "id": product["id"], "name": product["name"], "description": product.get("description") or "",
-        "price": product["price"], "category": product["category"], "tags": product.get("tags") or [],
+        "price": product["price"], "category": product["category"],
+        "target_gender": product.get("target_gender") or "unisex",
+        "tags": product.get("tags") or [],
         "suits_shapes": product.get("suits_shapes") or [], "tryon_layer_url": product.get("tryon_layer_url"),
         "moderation_status": product["moderation_status"], "risk_score": product.get("risk_score", 0),
         "risk_reasons": product.get("risk_reasons") or [], "sold_count": product.get("sold_count", 0),
@@ -153,7 +155,8 @@ def _evaluate(db, shop, clean):
 def _product_fields(clean, result):
     return {
         "name": clean["name"], "description": clean["description"], "price": clean["price"],
-        "category": clean["category"], "tags": clean["tags"], "suits_shapes": clean["suits_shapes"],
+        "category": clean["category"], "target_gender": clean["target_gender"],
+        "tags": clean["tags"], "suits_shapes": clean["suits_shapes"],
         "tryon_layer_url": clean["tryon_layer_url"],
         "moderation_status": result["decision"], "risk_score": result["risk_score"],
         "risk_reasons": result["reasons"],

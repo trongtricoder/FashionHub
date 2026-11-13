@@ -160,6 +160,13 @@ order by sp.ord;
 
 select setval(pg_get_serial_sequence('products', 'id'), (select max(id) from products));
 
+update products
+set target_gender = case
+  when category = 'vay-dam' or tags && array['nu-tinh']::text[] then 'female'
+  when shop_id = (select id from shops where name = 'Men Classic') then 'male'
+  else 'unisex'
+end;
+
 -- Ảnh: ảnh chính + 2 ảnh placeholder (sản phẩm vi phạm chỉ có ảnh chính nếu có)
 insert into product_images (product_id, url, is_main, position)
 select sp.ord, x.url, x.is_main, x.pos

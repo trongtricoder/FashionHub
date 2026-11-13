@@ -85,7 +85,7 @@
   <header>
     <div class="header-top">
       <div class="logo-container" onclick="location.href='index.html'">
-        <img src="/Project/assets/logo.png" alt="Logo">
+        <img src="/assets/logo.png" alt="Logo">
         <div class="logo">SELLER PRO <span>MANAGEMENT SYSTEM</span></div>
       </div>
 
@@ -156,6 +156,15 @@
             <option value="vay-dam">Váy đầm</option>
             <option value="phu-kien">Phụ kiện</option>
           </select>
+        </div>
+        <div class="field">
+          <label for="pTargetGender">Đối tượng phù hợp</label>
+          <select id="pTargetGender">
+            <option value="unisex">Nam và nữ</option>
+            <option value="female">Nữ</option>
+            <option value="male">Nam</option>
+          </select>
+          <small>AI sẽ dùng mục này để tránh gợi ý nhầm sản phẩm.</small>
         </div>
         <div class="field full">
           <label for="pTags">Tag (cách nhau bằng dấu phẩy)</label>
@@ -262,6 +271,7 @@
       document.getElementById("pDesc").value = p.description;
       document.getElementById("pPrice").value = p.price;
       document.getElementById("pCategory").value = p.category;
+      document.getElementById("pTargetGender").value = p.target_gender || "unisex";
       document.getElementById("pTags").value = p.tags.join(", ");
       renderShapes(p.suits_shapes);
       variants = p.variants.length ? p.variants.map(v => ({ size: v.size, color: v.color, stock: v.stock })) : [{ size: "", color: "", stock: 0 }];
@@ -277,6 +287,7 @@
         description: document.getElementById("pDesc").value,
         price: price === "" ? null : Number(price),
         category: document.getElementById("pCategory").value,
+        target_gender: document.getElementById("pTargetGender").value,
         tags: document.getElementById("pTags").value.split(",").map(t => t.trim()).filter(Boolean),
         suits_shapes: [...document.querySelectorAll("#shapeChecks input:checked")].map(c => c.value),
         variants: variants.filter(v => v.size.trim() || v.color.trim()).map(v => ({ size: v.size, color: v.color, stock: Number(v.stock) || 0 })),

@@ -16,9 +16,10 @@ BODY = {"height_cm": 170, "weight_kg": 60, "body_shape": "hourglass", "style_tag
         "budget_max": 300000, "wishes": "Thích đồ đi làm"}
 
 
-def product(pid, shop, name, price, category="ao", tags=(), shapes=(), sold=0, status="approved", active=True):
+def product(pid, shop, name, price, category="ao", tags=(), shapes=(), sold=0, status="approved", active=True,
+            target_gender="unisex"):
     return {"id": pid, "shop_id": shop, "name": name, "description": f"Mô tả {name} đủ dài", "price": price, "category": category,
-            "tags": list(tags), "suits_shapes": list(shapes), "sold_count": sold, "created_at": "2026-10-01",
+            "target_gender": target_gender, "tags": list(tags), "suits_shapes": list(shapes), "sold_count": sold, "created_at": "2026-10-01",
             "moderation_status": status, "is_active": active}
 
 
@@ -39,7 +40,8 @@ def db():
             "products": [
                 product(1, 1, "Áo sơ mi trắng", 250000, tags=["toi-gian", "cong-so"], shapes=["hourglass"], sold=10),
                 product(2, 1, "Áo thun basic", 150000, tags=["basic"], shapes=["rectangle"], sold=5),
-                product(3, 2, "Váy dài", 350000, "vay-dam", tags=["nu-tinh", "vintage"], shapes=["pear"], sold=2),
+                product(3, 2, "Váy dài", 350000, "vay-dam", tags=["nu-tinh", "vintage"], shapes=["pear"], sold=2,
+                        target_gender="female"),
                 product(4, 2, "Quần jeans", 380000, "quan", tags=["basic"], sold=7),
                 product(5, 3, "Hàng của shop bị chặn", 100000, tags=["toi-gian"], sold=99),
                 product(6, 2, "Hàng chờ duyệt", 100000, status="pending"),
@@ -180,6 +182,12 @@ def test_goi_y_chi_gom_san_pham_dang_ban_va_con_hang(client):
     items = recommend(client).get_json()["data"]["items"]
     ids = [i["product"]["id"] for i in items]
     assert set(ids) == {1, 2, 3, 4}          # loại: shop bị chặn (5), chờ duyệt (6), đã ẩn (7), hết hàng (8)
+
+
+def test_goi_y_khong_lan_san_pham_nu_vao_ho_so_nam(client):
+    save_body(client, model_gender="male")
+    ids = {item["product"]["id"] for item in recommend(client).get_json()["data"]["items"]}
+    assert 3 not in ids
 
 
 def test_goi_y_xep_theo_diem_va_co_ly_do(client):

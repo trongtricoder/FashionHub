@@ -111,6 +111,11 @@ def wish_matches(wishes_text, candidate):
     return adjacent_pairs(tokens, name_tokens) > 0
 
 
+def gender_compatible(model_gender, target_gender):
+    """Unisex products fit either model; gendered products only match the same model."""
+    return target_gender == "unisex" or target_gender == model_gender
+
+
 # ---------- tổng hợp ----------
 
 def score_candidate(profile, candidate, max_sold, wishes_text=""):
@@ -153,6 +158,11 @@ def recommend(profile, candidates, limit=8, extra_wishes=""):
     candidates: [{ id, shop_id, name, price, tags, suits_shapes, sold_count, rating_avg, rating_count, sizes }]
     (chỉ gồm sản phẩm đã duyệt và còn hàng; `sizes` là các size còn tồn kho).
     """
+    model_gender = profile.get("model_gender") or "female"
+    candidates = [
+        candidate for candidate in candidates
+        if gender_compatible(model_gender, candidate.get("target_gender") or "unisex")
+    ]
     if not candidates:
         return []
     max_sold = max(c.get("sold_count", 0) for c in candidates)

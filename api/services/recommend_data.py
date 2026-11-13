@@ -12,7 +12,9 @@ def visible_products(db, columns):
 
 def load_candidates(db):
     """Ứng viên gợi ý: sản phẩm đang bán và còn ít nhất một biến thể còn hàng, kèm size còn hàng, điểm đánh giá."""
-    products = visible_products(db, "id,shop_id,name,price,tags,suits_shapes,sold_count")
+    products = visible_products(
+        db, "id,shop_id,name,price,target_gender,tags,suits_shapes,sold_count",
+    )
     ids = [p["id"] for p in products]
     variants = fetch_in_chunks(db, "product_variants", "product_id", ids, "product_id,size,stock")
     reviews = fetch_in_chunks(db, "reviews", "product_id", ids, "product_id,rating")
@@ -31,6 +33,7 @@ def load_candidates(db):
         given = ratings.get(p["id"], [])
         candidates.append({
             "id": p["id"], "shop_id": p["shop_id"], "name": p["name"], "price": p["price"],
+            "target_gender": p.get("target_gender") or "unisex",
             "tags": p.get("tags") or [], "suits_shapes": p.get("suits_shapes") or [],
             "sold_count": p.get("sold_count") or 0, "sizes": sizes[p["id"]],
             "rating_avg": sum(given) / len(given) if given else 0, "rating_count": len(given),

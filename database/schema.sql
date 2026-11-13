@@ -52,6 +52,7 @@ create table if not exists products (
   name text not null, description text,
   price int not null check (price >= 0),
   category text not null check (category in ('ao','quan','vay-dam','phu-kien')),
+  target_gender text not null default 'unisex',
   tags text[] not null default '{}',
   suits_shapes text[] not null default '{}',
   tryon_layer_url text, tryon_model_url text,
@@ -63,6 +64,30 @@ create table if not exists products (
   sold_count int not null default 0,
   created_at timestamptz not null default now()
 );
+alter table products add column if not exists target_gender text;
+update products
+set target_gender = case
+  when category = 'vay-dam' or tags && array['nu-tinh', 'nu', 'female', 'women', 'woman']::text[]
+    then 'female'
+  when tags && array['nam', 'male', 'men', 'man']::text[]
+    then 'male'
+  else 'unisex'
+end
+where target_gender is null;
+alter table products alter column target_gender set default 'unisex';
+alter table products alter column target_gender set not null;
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'products_target_gender_check'
+      and conrelid = 'products'::regclass
+  ) then
+    alter table products
+      add constraint products_target_gender_check
+      check (target_gender in ('female', 'male', 'unisex'));
+  end if;
+end $$;
 
 create table if not exists product_variants (
   id bigint generated always as identity primary key,
