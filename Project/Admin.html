@@ -267,35 +267,37 @@
                 <p class="text-gray-500">Tiếp nhận khiếu nại, yêu cầu và góp ý từ Buyer và Seller.</p>
             </div>
             <div class="flex gap-6 flex-1 items-start">
-                <div class="w-64 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 shrink-0">
-                    <h3 class="font-bold text-gray-800 mb-4 px-2">Danh mục Ticket</h3>
-                    <ul class="space-y-2">
-                        <li><button onclick="loadTicket('buyer', this)" class="ticket-tab w-full text-left px-4 py-3 rounded-xl bg-pastel text-main font-bold transition">👤 Buyer</button></li>
-                        <li><button onclick="loadTicket('seller', this)" class="ticket-tab w-full text-left px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 font-medium transition">🛍️ Seller</button></li>
-                        <li><button onclick="loadTicket('khieunai', this)" class="ticket-tab w-full text-left px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 font-medium transition">⚠️ Khiếu nại</button></li>
-                        <li><button onclick="loadTicket('gopy', this)" class="ticket-tab w-full text-left px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 font-medium transition">💌 Yêu cầu / Góp ý</button></li>
-                    </ul>
+                <div class="w-72 bg-white rounded-2xl p-4 shadow-sm border border-gray-100 shrink-0">
+                    <h3 class="font-bold text-gray-800 mb-4 px-2">Yêu cầu hỗ trợ</h3>
+                    <select id="ticket-filter" onchange="loadTickets()" class="w-full border rounded-lg p-2 mb-3">
+                        <option value="all">Buyer và Seller</option>
+                        <option value="buyer">Buyer</option>
+                        <option value="seller">Seller</option>
+                    </select>
+                    <div id="ticket-list" class="space-y-2 max-h-[65vh] overflow-y-auto"></div>
                 </div>
                 <div class="flex-1 bg-white rounded-2xl p-6 shadow-sm border border-gray-100 relative">
                     <div class="flex justify-between items-start mb-6">
                         <div>
-                            <h3 id="tk-title" class="text-xl font-bold text-gray-800">Mail từ Buyer</h3>
+                            <h3 id="tk-title" class="text-xl font-bold text-gray-800">Chưa chọn yêu cầu</h3>
                             <p class="text-sm text-gray-400">Hộp thư hỗ trợ người dùng</p>
                         </div>
-                        <span id="tk-status" class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">Chưa xử lý</span>
+                        <span id="tk-status" class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">—</span>
                     </div>
                     <div class="bg-light rounded-xl p-5 mb-6 border border-pastel text-gray-700 space-y-4">
-                        <p><span class="font-semibold">Người gửi:</span> <span id="tk-sender">Buyer</span></p>
-                        <p><span class="font-semibold">Chủ đề:</span> <span id="tk-subject">Hỗ trợ đơn hàng</span></p>
+                        <p><span class="font-semibold">Người gửi:</span> <span id="tk-sender">—</span></p>
+                        <p><span class="font-semibold">Chủ đề:</span> <span id="tk-subject">—</span></p>
                         <hr class="border-pastel">
                         <div>
                             <p class="font-semibold mb-1">Nội dung:</p>
-                            <p id="tk-content">Tôi muốn hỏi về tình trạng đơn hàng của mình.</p>
+                            <p id="tk-content">Chọn một yêu cầu hỗ trợ ở danh sách.</p>
                         </div>
+                        <div id="tk-thread" class="space-y-3"></div>
                     </div>
                     <div>
                         <p class="font-bold text-gray-800 mb-2">Phản hồi của Admin</p>
-                        <textarea id="tk-reply" rows="4" placeholder="Nhập nội dung phản hồi..." class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-pastel mb-4 resize-none"></textarea>
+                        <textarea id="tk-reply" rows="4" placeholder="Nhập nội dung phản hồi..." class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-pastel mb-2 resize-none"></textarea>
+                        <p id="tk-error" class="text-red-600 text-sm mb-3" aria-live="polite"></p>
                         <div class="flex gap-3">
                             <button onclick="submitTicket()" class="bg-[#D985A7] hover:bg-pink-500 text-white font-bold px-5 py-2 rounded-lg transition shadow-sm">Ghi nhận phản hồi</button>
                             <button onclick="suggestAI()" class="bg-pastel hover:bg-[#f1c5d6] text-main font-bold px-5 py-2 rounded-lg transition shadow-sm">✨ Gợi ý phản hồi AI</button>
@@ -673,32 +675,19 @@
             else if (viewName === 'buyer-mgmt') { show('view-buyer-mgmt', 'nav-buyer'); loadBuyers(); }
             else if (viewName === 'seller-mgmt') { show('view-seller-mgmt', 'nav-seller'); loadSellers(); }
             else if (viewName === 'mod') { show('view-mod', 'nav-mod'); loadModeration(); }
-            else if (viewName === 'ticket') { show('view-ticket', 'nav-ticket'); }
+            else if (viewName === 'ticket') { show('view-ticket', 'nav-ticket'); loadTickets(); }
             else if (viewName === 'ai-mod') { show('view-ai', null); loadAIBlocked(); }   // trang con của Home, không tô menu
         }
 
         // --- TICKET LOGIC (Giữ nguyên) ---
         const ticketData = {
-            'buyer': { title: 'Mail từ Buyer', sender: 'Buyer', sub: 'Hỗ trợ đơn hàng', content: 'Tôi muốn hỏi về tình trạng đơn hàng của mình.' },
             'seller': { title: 'Mail từ Seller', sender: 'Seller', sub: 'Hỗ trợ người bán', content: 'Tôi cần hỗ trợ về việc đăng sản phẩm lên cửa hàng.' },
             'khieunai': { title: 'Khiếu nại dịch vụ', sender: 'ngocanh', sub: 'Sản phẩm lỗi', content: 'Sản phẩm tôi nhận được không giống hình. Yêu cầu đổi trả.' },
             'gopy': { title: 'Góp ý hệ thống', sender: 'pink_store', sub: 'Tính năng mới', content: 'Hệ thống nên có thêm tính năng in mã vạch cho đơn hàng.' }
         };
 
-        function loadTicket(type, btnElement) {
-            document.querySelectorAll('.ticket-tab').forEach(btn => btn.className = "ticket-tab w-full text-left px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 font-medium transition");
-            btnElement.className = "ticket-tab w-full text-left px-4 py-3 rounded-xl bg-pastel text-main font-bold transition";
-
-            const data = ticketData[type];
-            document.getElementById('tk-title').innerText = data.title;
-            document.getElementById('tk-sender').innerText = data.sender;
-            document.getElementById('tk-subject').innerText = data.sub;
-            document.getElementById('tk-content').innerText = data.content;
-            
-            document.getElementById('tk-reply').value = '';
-            const status = document.getElementById('tk-status');
-            status.className = "bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold";
-            status.innerText = "Chưa xử lý";
+        function loadTicket() {
+            loadTickets();
         }
 
         function suggestAI() {
@@ -713,6 +702,95 @@
             const status = document.getElementById('tk-status');
             status.className = "bg-orange-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold";
             status.innerText = "Đã ghi nhận demo";
+        }
+
+        let allTickets = [];
+        let selectedTicketId = null;
+
+        async function loadTickets() {
+            const list = document.getElementById('ticket-list');
+            const filter = document.getElementById('ticket-filter').value;
+            document.getElementById('tk-error').innerText = '';
+            try {
+                const data = await api('/tickets');
+                allTickets = data.items;
+                const visible = allTickets.filter(ticket => filter === 'all' || ticket.user_role === filter);
+                list.replaceChildren();
+                if (!visible.length) {
+                    const empty = document.createElement('p');
+                    empty.className = 'text-sm text-gray-500 px-2';
+                    empty.textContent = 'Chưa có yêu cầu hỗ trợ.';
+                    list.appendChild(empty);
+                    renderSelectedTicket(null);
+                    return;
+                }
+                visible.forEach(ticket => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'w-full text-left px-3 py-3 rounded-xl border border-gray-100 hover:bg-light';
+                    const subject = document.createElement('strong');
+                    subject.className = 'block truncate text-gray-800';
+                    subject.textContent = ticket.subject;
+                    const sender = document.createElement('span');
+                    sender.className = 'block text-sm text-gray-500 truncate';
+                    sender.textContent = `${ticket.user_name} · ${ticket.user_role}`;
+                    button.append(subject, sender);
+                    button.addEventListener('click', () => renderSelectedTicket(ticket.id));
+                    list.appendChild(button);
+                });
+                const selectedVisible = visible.some(ticket => ticket.id === selectedTicketId);
+                renderSelectedTicket(selectedVisible ? selectedTicketId : visible[0].id);
+            } catch (error) {
+                list.textContent = error.message;
+                document.getElementById('tk-error').innerText = error.message;
+            }
+        }
+
+        function renderSelectedTicket(ticketId) {
+            selectedTicketId = ticketId;
+            const ticket = allTickets.find(item => item.id === ticketId);
+            const thread = document.getElementById('tk-thread');
+            thread.replaceChildren();
+            if (!ticket) {
+                document.getElementById('tk-title').innerText = 'Chưa chọn yêu cầu';
+                document.getElementById('tk-sender').innerText = '—';
+                document.getElementById('tk-subject').innerText = '—';
+                document.getElementById('tk-content').innerText = 'Chọn một yêu cầu hỗ trợ ở danh sách.';
+                document.getElementById('tk-reply').disabled = true;
+                return;
+            }
+            document.getElementById('tk-title').innerText = `Ticket #${ticket.id}`;
+            document.getElementById('tk-sender').innerText = `${ticket.user_name} (${ticket.user_role})`;
+            document.getElementById('tk-subject').innerText = ticket.subject;
+            document.getElementById('tk-content').innerText = ticket.content;
+            document.getElementById('tk-status').innerText = ticket.status === 'closed' ? 'Đã đóng' : 'Đang mở';
+            document.getElementById('tk-reply').disabled = false;
+            document.getElementById('tk-reply').value = '';
+            (ticket.replies || []).forEach(reply => {
+                const item = document.createElement('p');
+                item.className = 'rounded-lg bg-white border border-pastel p-3';
+                item.textContent = `${reply.user_name} (${reply.user_role}): ${reply.content}`;
+                thread.appendChild(item);
+            });
+        }
+
+        async function submitTicket() {
+            const content = document.getElementById('tk-reply').value.trim();
+            const errorElement = document.getElementById('tk-error');
+            if (!selectedTicketId) {
+                errorElement.innerText = 'Hãy chọn một yêu cầu hỗ trợ.';
+                return;
+            }
+            if (!content) {
+                errorElement.innerText = 'Vui lòng nhập nội dung phản hồi.';
+                return;
+            }
+            try {
+                await api(`/tickets/${selectedTicketId}/reply`, { method: 'POST', body: { content } });
+                await loadTickets();
+            } catch (error) {
+                errorElement.innerText = error.message;
+            }
         }
 
         // --- CUSTOM MODAL ---

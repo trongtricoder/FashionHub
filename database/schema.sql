@@ -25,11 +25,15 @@ create table if not exists profiles (
 create table if not exists body_profiles (
   user_id uuid primary key references profiles(id) on delete cascade,
   height_cm int, weight_kg int,
+  model_gender text not null default 'female' check (model_gender in ('female','male')),
   body_shape text check (body_shape in ('pear','hourglass','rectangle','apple','inverted_triangle')),
   style_tags text[] not null default '{}',
   budget_max int,
   wishes text
 );
+alter table body_profiles
+  add column if not exists model_gender text not null default 'female'
+  check (model_gender in ('female','male'));
 
 create table if not exists shops (
   id bigint generated always as identity primary key,
@@ -120,9 +124,12 @@ create table if not exists messages (
   sender_id uuid not null references profiles(id) on delete cascade,
   receiver_id uuid not null references profiles(id) on delete cascade,
   content text not null,
+  product_id bigint references products(id) on delete set null,
   is_read boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+alter table messages add column if not exists product_id bigint references products(id) on delete set null;
 
 create table if not exists tickets (
   id bigint generated always as identity primary key,

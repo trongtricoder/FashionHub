@@ -1,16 +1,18 @@
 """Hồ sơ người dùng hiện tại: GET và PATCH /api/me (mục 9.1)."""
 import re
+import uuid
 
 from flask import Blueprint, current_app, g, request
 
-from ..services import product_input
+from ..services import product_input, uploads
 from ..services.auth import require_role
-from ..services.db import get_db
+from ..services.db import get_db, new_anon_client
 from ..services.responses import fail, ok, ok_null
 
 bp = Blueprint("me", __name__, url_prefix="/api/me")
 
 PHONE_RE = re.compile(r"^(\+84|0)\d{9,10}$")
+MAX_AVATAR_BYTES = 2 * 1024 * 1024
 
 
 def me_payload(profile):
@@ -66,17 +68,64 @@ def update_me():
     return ok(me_payload(rows[0]))
 
 
+@bp.post("/avatar")
+@require_role()
+def upload_avatar():
+    """POST /api/me/avatar (multipart, field 'file'): upload avatar to public Supabase Storage."""
+    file = request.files.get("file")
+    if not file:
+        return fail("INVALID_INPUT", "Vui lòng chọn ảnh đại diện.", 400)
+    data = file.read(MAX_AVATAR_BYTES + 1)
+    if len(data) > MAX_AVATAR_BYTES:
+        return fail("FILE_TOO_LARGE", "Ảnh đại diện tối đa 2 MB.", 413)
+    kind = uploads.sniff_image(data)
+    if not kind:
+        return fail("INVALID_INPUT", "Ảnh đại diện phải là JPG, PNG hoặc WEBP.", 400)
+
+    extension, content_type = kind
+    path = f"{g.user['id']}/{uuid.uuid4().hex}.{extension}"
+    db = get_db()
+    try:
+        storage = db.storage.from_("avatars")
+        storage.upload(path, data, {"content-type": content_type})
+        avatar_url = storage.get_public_url(path).rstrip("?")
+    except Exception:
+        current_app.logger.exception("Tải ảnh đại diện lên Supabase Storage thất bại")
+        return fail("UPLOAD_FAILED", "Không tải được ảnh đại diện, vui lòng thử lại.", 502)
+
+    rows = db.table("profiles").update({"avatar_url": avatar_url}).eq(
+        "id", g.user["id"]).execute().data
+    return ok(me_payload(rows[0]))
+
+
 @bp.post("/change-password")
 @require_role()
 def change_password():
-    """POST /api/me/change-password { new_password }: đổi mật khẩu và gỡ yêu cầu bắt đổi mật khẩu (sau khi Admin đặt lại).
+    """Verify the current password, update the password, and clear the forced-change flag.
 
     Thay cho POST /api/me/password-changed ở mục 9.1, vì trang HTML không dùng Supabase JS để tự đổi mật khẩu.
     """
     body = request.get_json(silent=True) or {}
+    current_password = str(body.get("current_password") or "")
     password = str(body.get("new_password") or "")
+    if not current_password or len(current_password) > 72:
+        return fail("INVALID_INPUT", "Vui lòng nhập mật khẩu hiện tại.", 400)
     if not 6 <= len(password) <= 72:
         return fail("INVALID_INPUT", "Mật khẩu mới phải từ 6 đến 72 ký tự.", 400)
+    if current_password == password:
+        return fail("INVALID_INPUT", "Mật khẩu mới phải khác mật khẩu hiện tại.", 400)
+
+    try:
+        verification = new_anon_client().auth.sign_in_with_password({
+            "email": g.user["email"],
+            "password": current_password,
+        })
+    except Exception:
+        current_app.logger.info("Xác minh mật khẩu hiện tại thất bại cho %s", g.user["id"])
+        return fail("INVALID_CURRENT_PASSWORD", "Mật khẩu hiện tại không đúng.", 401)
+    if not verification.session:
+        return fail("INVALID_CURRENT_PASSWORD", "Mật khẩu hiện tại không đúng.", 401)
+
     db = get_db()
     try:
         db.auth.admin.update_user_by_id(g.user["id"], {"password": password})

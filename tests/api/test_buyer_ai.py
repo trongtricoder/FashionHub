@@ -86,11 +86,17 @@ def test_so_do_chua_co_thi_tra_ve_null(client):
 
 def test_luu_so_do_tao_moi_roi_cap_nhat(client, db):
     first = save_body(client).get_json()["data"]
-    assert first["height_cm"] == 170 and first["style_tags"] == ["toi-gian", "cong-so"] and first["user_id"] == "u-b1"
+    assert first["height_cm"] == 170 and first["model_gender"] == "female"
+    assert first["style_tags"] == ["toi-gian", "cong-so"] and first["user_id"] == "u-b1"
     second = save_body(client, height_cm=175, budget_max=None).get_json()["data"]
     assert second["height_cm"] == 175 and second["budget_max"] is None
     assert len(db.tables["body_profiles"]) == 1                      # cập nhật, không thêm dòng mới
     assert client.get("/api/me/body-profile", headers=B1).get_json()["data"]["height_cm"] == 175
+
+
+def test_luu_duoc_kieu_nguoi_mau_nam(client):
+    profile = save_body(client, model_gender="male").get_json()["data"]
+    assert profile["model_gender"] == "male"
 
 
 def test_so_do_cua_nguoi_nao_nguoi_do_thay(client):
@@ -100,7 +106,8 @@ def test_so_do_cua_nguoi_nao_nguoi_do_thay(client):
 
 @pytest.mark.parametrize("patch", [
     {"height_cm": 99}, {"height_cm": 231}, {"height_cm": "abc"}, {"height_cm": 170.5}, {"weight_kg": 24}, {"weight_kg": None},
-    {"body_shape": "tron"}, {"body_shape": None}, {"style_tags": "abc"}, {"style_tags": [str(i) for i in range(11)]},
+    {"body_shape": "tron"}, {"body_shape": None}, {"model_gender": "other"},
+    {"style_tags": "abc"}, {"style_tags": [str(i) for i in range(11)]},
     {"budget_max": -1}, {"wishes": "x" * 301},
 ])
 def test_so_do_sai_tra_400(client, db, patch):

@@ -369,19 +369,6 @@ from (values
 ) v(email, h, w, shape, tags, budget, wishes)
 join profiles p on p.email = v.email;
 
-insert into messages (sender_id, receiver_id, content, is_read, created_at)
-select a.id, b.id, m.content, m.is_read, now() - m.ago
-from (values
-  ('buyer1', 'seller1', 'Shop ơi áo thun basic còn size M màu trắng không ạ?', true,  interval '3 hours'),
-  ('seller1', 'buyer1', 'Dạ còn size M ạ, bạn đặt hàng giúp shop nhé.',        true,  interval '2 hours 50 minutes'),
-  ('buyer1', 'seller1', 'Mình đặt luôn nhé, giao trong hôm nay được không shop?', false, interval '2 hours 40 minutes'),
-  ('buyer2', 'seller2', 'Chân váy jean bên shop có form dài hơn không ạ?',      false, interval '1 hour'),
-  ('buyer3', 'seller1', 'Áo polo trơn mặc đi làm có bị nhăn không shop?',       true,  interval '1 day'),
-  ('seller1', 'buyer3', 'Dạ vải cá sấu ít nhăn lắm ạ, bạn yên tâm nhé.',       true,  interval '23 hours')
-) m(from_user, to_user, content, is_read, ago)
-join profiles a on a.username = m.from_user
-join profiles b on b.username = m.to_user;
-
 insert into tickets (user_id, subject, content, status, created_at)
 select id, 'Không nhận được mã xác nhận',
        'Em đăng ký tài khoản nhưng chưa vào được, nhờ admin hỗ trợ giúp em.', 'open', now() - interval '1 day'

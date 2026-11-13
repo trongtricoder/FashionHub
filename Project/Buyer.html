@@ -532,6 +532,55 @@
         height: 100%;
         object-fit: cover;
       }
+      .tryon-layout {
+        display: grid;
+        grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+        gap: 20px;
+        align-items: start;
+      }
+      .tryon-panel {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+      }
+      .tryon-canvas-wrap {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: linear-gradient(180deg, #fffafd, #f8edf2);
+      }
+      #tryonCanvas { display: block; width: 100%; height: auto; }
+      .tryon-help { margin: 10px 0; color: var(--text-muted); font-size: 13px; }
+      .tryon-item-list { display: grid; gap: 8px; margin: 10px 0 18px; }
+      .tryon-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 9px 11px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--pink-pale);
+      }
+      .tryon-item-name { min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
+      .tryon-face-controls { display: grid; gap: 9px; margin-top: 12px; }
+      .tryon-camera-video {
+        display: block;
+        width: 100%;
+        max-width: 320px;
+        max-height: 220px;
+        margin-top: 8px;
+        border-radius: 10px;
+        background: #222;
+      }
+      @media (max-width: 800px) {
+        .tryon-layout { grid-template-columns: 1fr; }
+        .tryon-panel { padding: 14px; }
+      }
 
       /* MODAL */
       .modal {
@@ -654,12 +703,34 @@
 
       /* CHAT BOX STYLES */
       .chat-modal-content {
-        max-width: 450px;
+        max-width: 680px;
         height: 500px;
         display: flex;
         flex-direction: column;
         padding: 0;
         overflow: hidden;
+      }
+      .chat-conversations {
+        display: flex;
+        gap: 8px;
+        padding: 10px 12px;
+        overflow-x: auto;
+        background: white;
+        border-bottom: 1px solid var(--border);
+      }
+      .chat-conversation {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--pink-pale);
+        padding: 6px 10px;
+        white-space: nowrap;
+      }
+      .ticket-thread {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 12px;
+        background: white;
       }
       .chat-header {
         background: var(--pink-main);
@@ -686,6 +757,42 @@
         font-size: 14px;
         line-height: 1.4;
       }
+      .chat-product-context {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        background: #fffafd;
+      }
+      .chat-product-context[hidden] { display: none; }
+      .chat-product-context img, .chat-product-attachment img {
+        width: 48px;
+        height: 48px;
+        flex: 0 0 48px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: var(--pink-pastel);
+      }
+      .chat-product-context strong, .chat-product-attachment strong {
+        display: block;
+        color: var(--text-dark);
+        font-size: 13px;
+      }
+      .chat-product-context span, .chat-product-attachment span {
+        color: var(--pink-dark);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .chat-product-attachment {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: -2px 0 8px;
+        padding: 7px;
+        border-radius: 9px;
+        background: rgba(255,255,255,.72);
+      }
       .chat-bubble.shop {
         background: white;
         align-self: flex-start;
@@ -697,19 +804,54 @@
         align-self: flex-end;
       }
       .chat-input-area {
-        padding: 12px;
+        align-items: center;
+        padding: 14px;
         background: white;
         border-top: 1px solid var(--border);
         display: flex;
-        gap: 8px;
+        gap: 10px;
       }
       .chat-input-area input {
         flex: 1;
+        min-width: 0;
+        height: 44px;
         border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 8px 12px;
+        border-radius: 24px;
+        padding: 0 16px;
+        background: var(--pink-pale);
+        font-size: 14px;
         outline: none;
       }
+      .chat-input-area input:focus {
+        border-color: var(--pink-main);
+        box-shadow: 0 0 0 3px rgba(217, 133, 167, 0.15);
+      }
+      .chat-input-area .btn {
+        min-width: 82px;
+        height: 44px;
+        justify-content: center;
+        border: 0;
+        border-radius: 22px;
+        font-weight: 700;
+      }
+      .chat-suggestions {
+        align-self: flex-start;
+        max-width: 100%;
+        margin: auto 0;
+        padding: 18px 4px;
+        color: var(--text-muted);
+      }
+      .chat-suggestions p { margin-bottom: 10px; font-size: 13px; }
+      .chat-suggestions button {
+        margin: 0 6px 7px 0;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: white;
+        color: var(--pink-dark);
+        cursor: pointer;
+      }
+      .chat-suggestions button:hover { background: var(--pink-pastel); }
 
       .toast {
         position: fixed;
@@ -934,7 +1076,7 @@
           </select>
 
           <button class="icon-btn" onclick="openNotificationsModal()">
-            🔔 <span class="notif-badge" id="notifBadge">2</span>
+            🔔 <span class="notif-badge" id="notifBadge">0</span>
           </button>
 
           <div
@@ -1017,6 +1159,9 @@
             onclick="showPage('orders-page', this)"
             data-i18n="nav_orders">
             📦 Đơn hàng
+          </button>
+          <button onclick="showPage('tryon-page', this)">
+            👗 Thử đồ
           </button>
         </nav>
       </div>
@@ -1117,6 +1262,7 @@
             onclick="submitAdminTicket()">
             🚀 Gửi Yêu Cầu Hỗ Trợ
           </button>
+          <div id="buyerTicketList" aria-live="polite" style="margin-top: 24px"></div>
         </div>
       </section>
 
@@ -1129,6 +1275,70 @@
           </p>
         </div>
         <div class="product-grid" id="productGrid"></div>
+      </section>
+
+      <!-- THỬ ĐỒ ẢO MỨC 1 -->
+      <section id="tryon-page" class="page">
+        <div class="page-heading">
+          <h1>👗 Thử đồ ảo</h1>
+          <p>Phối các lớp trang phục trên người mẫu 2D theo số đo đã lưu.</p>
+        </div>
+        <div class="tryon-layout">
+          <div class="tryon-panel">
+            <div class="tryon-canvas-wrap">
+              <canvas id="tryonCanvas" width="420" height="620" aria-label="Người mẫu thử đồ 2D"></canvas>
+            </div>
+            <p class="tryon-help" id="tryonStatus" aria-live="polite">
+              Đang chuẩn bị người mẫu...
+            </p>
+            <button class="btn btn-light" onclick="openAiModal(); switchAiTab('rec')">
+              Nhập hoặc cập nhật số đo
+            </button>
+          </div>
+
+          <div class="tryon-panel">
+            <h3>Trang phục đang thử</h3>
+            <div id="tryonSelectedItems" class="tryon-item-list"></div>
+            <button class="btn btn-light" type="button" onclick="clearTryOnOutfit()">
+              Bỏ toàn bộ trang phục
+            </button>
+
+            <h3 style="margin-top: 22px">Thêm từ giỏ hàng</h3>
+            <p class="tryon-help">Chỉ thử được mỗi loại trang phục một món; phụ kiện có thể ghép nhiều món.</p>
+            <div id="tryonCartItems" class="tryon-item-list">
+              <p class="tryon-help">Đang tải sản phẩm trong giỏ...</p>
+            </div>
+
+            <h3 style="margin-top: 20px">Thêm từ gợi ý AI</h3>
+            <p class="tryon-help">Mở Trợ lý AI, lưu số đo và chọn “Thử đồ” trên một gợi ý.</p>
+            <button class="btn btn-light" type="button" onclick="openAiModal(); switchAiTab('rec')">
+              Mở gợi ý AI
+            </button>
+
+            <div class="tryon-face-controls">
+              <h3>Ảnh khuôn mặt (tùy chọn)</h3>
+              <label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;">
+                <input type="checkbox" id="tryonFaceConsent" onchange="handleTryOnConsent(this.checked)">
+                <span>Tôi đồng ý xử lý ảnh khuôn mặt trong trình duyệt. Ảnh không được tải lên máy chủ.</span>
+              </label>
+              <input id="tryonFaceFile" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="handleTryOnFaceFile(event)">
+              <button id="tryonChooseFace" class="btn btn-light" type="button" disabled onclick="document.getElementById('tryonFaceFile').click()">
+                Chọn ảnh từ thiết bị
+              </button>
+              <button id="tryonStartCamera" class="btn btn-light" type="button" disabled onclick="startTryOnCamera()">
+                Mở webcam
+              </button>
+              <video id="tryonCameraVideo" class="tryon-camera-video" autoplay muted playsinline hidden></video>
+              <button id="tryonCaptureFace" class="btn btn-light" type="button" hidden onclick="captureTryOnFace()">
+                Chụp ảnh webcam
+              </button>
+              <button id="tryonClearFace" class="btn btn-light" type="button" hidden onclick="clearTryOnFace()">
+                Xóa ảnh khuôn mặt
+              </button>
+              <p id="tryonFaceStatus" class="tryon-help" aria-live="polite"></p>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- GIỎ HÀNG -->
@@ -1349,17 +1559,18 @@
               <input
                 type="file"
                 id="avatarFileInput"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp"
                 style="display: none"
                 onchange="handleAvatarChange(event)" />
               <button
                 class="btn btn-light"
+                id="avatarUploadButton"
                 style="width: 100%; font-size: 13px"
                 onclick="document.getElementById('avatarFileInput').click()">
                 📷 Đổi Ảnh Đại Diện
               </button>
               <p style="font-size: 11px; color: var(--text-muted)">
-                Dung lượng file tối đa 2MB<br />Định dạng: JPG, PNG
+                Dung lượng file tối đa 2MB<br />Định dạng: JPG, PNG, WEBP
               </p>
             </div>
 
@@ -1383,21 +1594,11 @@
               </div>
               <div class="form-group">
                 <label data-i18n="lbl_phone">Số Điện Thoại</label>
-                <input type="text" id="profPhone" value="0988123456" />
-              </div>
-              <div class="form-group">
-                <label>Số Căn Cước Công Dân (CCCD / CMND)</label>
-                <input
-                  type="text"
-                  id="profCccd"
-                  value="079198001234"
-                  placeholder="Nhập 12 số CCCD..." />
+                <input type="tel" id="profPhone" maxlength="14" />
               </div>
               <div class="form-group">
                 <label>Địa Chỉ Mặc Định Nhận Hàng</label>
-                <textarea id="profAddress" rows="3">
-123 Đường Lê Lợi, Phường Bến Thành, Quận 1, TP.Hồ Chí Minh</textarea
-                >
+                <textarea id="profAddress" rows="3" maxlength="255"></textarea>
               </div>
               <button
                 class="btn btn-primary"
@@ -1429,21 +1630,19 @@
             >&times;</span
           >
         </div>
+        <div class="chat-conversations" id="chatConversationList"></div>
+        <div class="chat-product-context" id="chatProductContext" hidden></div>
         <div class="chat-messages" id="chatMessagesBox">
-          <div class="chat-bubble shop">
-            Xin chào bạn! Cửa hàng có thể hỗ trợ gì cho sản phẩm bạn đang quan
-            tâm ạ?
-          </div>
         </div>
         <div class="chat-input-area">
           <input
             type="text"
             id="chatInputText"
+            maxlength="2000"
             placeholder="Nhập tin nhắn..."
-            onkeypress="handleChatKey(event)" />
+            onkeydown="handleChatKey(event)" />
           <button
             class="btn btn-primary"
-            style="padding: 8px 14px"
             onclick="sendChatMessage()">
             Gửi
           </button>
@@ -1509,22 +1708,31 @@
                 placeholder="ví dụ 55" />
             </div>
           </div>
-          <div class="form-group">
-            <label for="bpShape">Dáng người</label>
-            <select id="bpShape">
-              <option value="">-- Chọn dáng người --</option>
-              <option value="pear">Quả lê (hông rộng hơn vai)</option>
-              <option value="hourglass">
-                Đồng hồ cát (vai và hông cân đối, eo nhỏ)
-              </option>
-              <option value="rectangle">
-                Chữ nhật (vai, eo, hông gần bằng nhau)
-              </option>
-              <option value="apple">Quả táo (bụng đầy đặn)</option>
-              <option value="inverted_triangle">
-                Tam giác ngược (vai rộng hơn hông)
-              </option>
-            </select>
+          <div class="two-cols">
+            <div class="form-group">
+              <label for="bpGender">Kiểu người mẫu</label>
+              <select id="bpGender">
+                <option value="female">Nữ</option>
+                <option value="male">Nam</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bpShape">Dáng người</label>
+              <select id="bpShape">
+                <option value="">-- Chọn dáng người --</option>
+                <option value="pear">Quả lê (hông rộng hơn vai)</option>
+                <option value="hourglass">
+                  Đồng hồ cát (vai và hông cân đối, eo nhỏ)
+                </option>
+                <option value="rectangle">
+                  Chữ nhật (vai, eo, hông gần bằng nhau)
+                </option>
+                <option value="apple">Quả táo (bụng đầy đặn)</option>
+                <option value="inverted_triangle">
+                  Tam giác ngược (vai rộng hơn hông)
+                </option>
+              </select>
+            </div>
           </div>
           <div class="form-group">
             <label>Phong cách yêu thích</label>
@@ -1622,8 +1830,8 @@
           <button
             class="btn btn-light"
             style="font-size: 12px; padding: 4px 8px"
-            onclick="clearAllNotifications()">
-            Xóa tất cả
+            onclick="loadDerivedNotifications()">
+            Cập nhật
           </button>
         </div>
         <div id="notificationsList"></div>
@@ -1869,6 +2077,20 @@
       // Sản phẩm lấy từ server (GET /api/products). Đổi tên trường về dạng mà giao diện cũ đang dùng
       // (img, store) để các hàm render, tìm kiếm, giỏ hàng phía dưới giữ nguyên.
       let products = [];
+      let activeChatUserId = null;
+      let activeChatShopId = null;
+      let activeChatProduct = null;
+      let lastChatAt = null;
+      let chatPollTimer = null;
+      let selectedTryOnItems = [];
+      let tryOnImageCache = new Map();
+      let tryOnSampleImages = {};
+      let tryOnRenderVersion = 0;
+      let tryOnFaceImage = null;
+      let tryOnFaceObjectUrl = null;
+      let tryOnCameraStream = null;
+      let savedBodyProfile = null;
+      let bodyProfileLoaded = false;
 
       async function loadProducts() {
         try {
@@ -1881,6 +2103,7 @@
             price: p.price,
             store: escapeHtml(p.shop_name),
             shopId: p.shop_id,
+            category: p.category,
             rawName: p.name, // tên gốc, dùng cho thông báo toast (không qua innerHTML)
             rating: p.rating_avg,
             ratingCount: p.rating_count,
@@ -1968,9 +2191,13 @@
             id: i.product.id,
             name:
               escapeHtml(i.product.name) + (i.available ? "" : " (ngừng bán)"),
+            rawName: i.product.name,
             price: i.product.price,
+            category: i.product.category,
             store: escapeHtml(i.product.shop_name),
+            shopId: i.product.shop_id,
             img: safeImg(i.product.image_url),
+            available: i.available,
             size: escapeHtml(i.size),
             color: escapeHtml(i.color),
             qty: i.quantity,
@@ -1981,12 +2208,614 @@
           handleApiError(err);
         }
         updateCartUI();
+        renderTryOnCartItems();
+      }
+
+      const TRYON_SAMPLE_SVGS = {
+        ao: {
+          width: 260, height: 420, color: "#d985a7",
+          path: "M45 25 82 8h96l37 17 45 45-29 46-36-26v310H45V90L0 124 0 78z",
+          extra: '<path d="M82 8q48 58 96 0M48 417h164" fill="none" stroke="#b95f84" stroke-width="8"/>',
+        },
+        quan: {
+          width: 260, height: 380, color: "#6485b8",
+          path: "M15 10h230l-10 360h-88l-9-215-9 215H25z",
+          extra: '<path d="M20 55h220M130 14v128" fill="none" stroke="#455f8a" stroke-width="8"/>',
+        },
+        "vay-dam": {
+          width: 260, height: 720, color: "#9b76b7",
+          path: "M90 10h80l22 48 52 50-37 48-27-24 48 578H32l48-578-27 24-37-48 52-50z",
+          extra: '<path d="M95 11q35 48 70 0M62 310h136" fill="none" stroke="#765693" stroke-width="9"/>',
+        },
+        "phu-kien": {
+          width: 150, height: 170, color: "#d5a24d",
+          path: "M25 67h100v92H25z",
+          extra: '<path d="M43 69V48a32 32 0 0 1 64 0v21" fill="none" stroke="#9e7130" stroke-width="10"/><path d="M25 88h100" stroke="#9e7130" stroke-width="6"/>',
+        },
+      };
+
+      function renderTryOnCartItems() {
+        const list = document.getElementById("tryonCartItems");
+        if (!list) return;
+        list.replaceChildren();
+        if (!cart.length) {
+          const empty = document.createElement("p");
+          empty.className = "tryon-help";
+          empty.textContent = "Giỏ hàng chưa có sản phẩm.";
+          list.appendChild(empty);
+          return;
+        }
+        cart.forEach((item) => {
+          const row = document.createElement("div");
+          row.className = "tryon-item";
+          const name = document.createElement("span");
+          name.className = "tryon-item-name";
+          name.textContent = `${item.rawName} · ${item.color}, size ${item.size}`;
+          const button = document.createElement("button");
+          button.className = "btn btn-light";
+          button.type = "button";
+          button.textContent = "Thử";
+          button.disabled = !item.available;
+          button.addEventListener("click", () => addTryOnProduct(item));
+          row.append(name, button);
+          list.appendChild(row);
+        });
+      }
+
+      function renderTryOnSelectedItems() {
+        const list = document.getElementById("tryonSelectedItems");
+        list.replaceChildren();
+        if (!selectedTryOnItems.length) {
+          const empty = document.createElement("p");
+          empty.className = "tryon-help";
+          empty.textContent = "Chưa chọn trang phục.";
+          list.appendChild(empty);
+          return;
+        }
+        selectedTryOnItems.forEach((item) => {
+          const row = document.createElement("div");
+          row.className = "tryon-item";
+          const name = document.createElement("span");
+          name.className = "tryon-item-name";
+          name.textContent = `${item.name} · ${item.categoryLabel}`;
+          const button = document.createElement("button");
+          button.className = "btn btn-light";
+          button.type = "button";
+          button.textContent = "Bỏ";
+          button.addEventListener("click", () => removeTryOnItem(item.id));
+          row.append(name, button);
+          list.appendChild(row);
+        });
+      }
+
+      async function addTryOnProduct(product) {
+        try {
+          const detail = await api(`/products/${product.id}`, { auth: false });
+          const categoryLabels = {
+            ao: "Áo",
+            quan: "Quần",
+            "vay-dam": "Váy đầm",
+            "phu-kien": "Phụ kiện",
+          };
+          if (!categoryLabels[detail.category]) {
+            showToast("Loại sản phẩm này chưa hỗ trợ thử đồ.");
+            return;
+          }
+          const item = {
+            id: detail.id,
+            name: detail.name,
+            category: detail.category,
+            categoryLabel: categoryLabels[detail.category],
+            layerUrl: safeImg(detail.tryon_layer_url),
+          };
+          if (item.category === "phu-kien") {
+            if (selectedTryOnItems.some((selected) => selected.id === item.id)) {
+              showToast("Phụ kiện này đã có trong bộ đồ.");
+              return;
+            }
+            selectedTryOnItems.push(item);
+          } else {
+            selectedTryOnItems = selectedTryOnItems.filter((selected) => {
+              if (item.category === "vay-dam") {
+                return !["ao", "quan", "vay-dam"].includes(selected.category);
+              }
+              return selected.category !== item.category && selected.category !== "vay-dam";
+            });
+            selectedTryOnItems.push(item);
+          }
+          closeModal("aiStylistModal");
+          const navButton = [...document.querySelectorAll("nav button")].find(
+            (button) => button.textContent.includes("Thử đồ"),
+          );
+          showPage("tryon-page", navButton);
+          renderTryOnSelectedItems();
+          await renderTryOnCanvas();
+        } catch (err) {
+          handleApiError(err);
+        }
+      }
+
+      function removeTryOnItem(productId) {
+        selectedTryOnItems = selectedTryOnItems.filter((item) => item.id !== productId);
+        renderTryOnSelectedItems();
+        renderTryOnCanvas();
+      }
+
+      function clearTryOnOutfit() {
+        selectedTryOnItems = [];
+        renderTryOnSelectedItems();
+        renderTryOnCanvas();
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function drawTryOnMannequin(context, profile) {
+        const modelGender = profile.model_gender === "male" ? "male" : "female";
+        const height = clamp(Number(profile.height_cm) || 165, 100, 230);
+        const weight = clamp(Number(profile.weight_kg) || 55, 25, 200);
+        const heightScale = clamp(height / 165, 0.84, 1.14);
+        const bmi = weight / ((height / 100) ** 2);
+        const widthScale = clamp(0.94 + (bmi - 21.5) * 0.012, 0.82, 1.2);
+        const proportions = {
+          pear: { shoulder: 0.94, waist: 0.94, hips: 1.12 },
+          hourglass: { shoulder: 1, waist: 0.82, hips: 1.06 },
+          rectangle: { shoulder: 1, waist: 0.96, hips: 1 },
+          apple: { shoulder: 1.02, waist: 1.08, hips: 1.02 },
+          inverted_triangle: { shoulder: 1.1, waist: 0.98, hips: 0.92 },
+        }[profile.body_shape] || { shoulder: 1, waist: 1, hips: 1 };
+        const genderProportions = modelGender === "male"
+          ? { shoulder: 1.12, waist: 1.05, hips: 0.92 }
+          : { shoulder: 1, waist: 1, hips: 1 };
+        const center = 210;
+        const figureHeight = 510 * heightScale;
+        const top = (620 - figureHeight) / 2;
+        const headY = top + 42 * heightScale;
+        const shoulderY = top + 108 * heightScale;
+        const waistY = top + 263 * heightScale;
+        const hipY = top + 337 * heightScale;
+        const crotchY = top + 370 * heightScale;
+        const footY = top + figureHeight;
+        const shoulder = 65 * widthScale * proportions.shoulder * genderProportions.shoulder;
+        const waist = 48 * widthScale * proportions.waist * genderProportions.waist;
+        const hips = 66 * widthScale * proportions.hips * genderProportions.hips;
+        const legWidth = 29 * widthScale;
+        const skin = context.createLinearGradient(center - 90, 0, center + 90, 0);
+        skin.addColorStop(0, "#dca78f");
+        skin.addColorStop(0.48, "#f2cdb5");
+        skin.addColorStop(1, "#dca78f");
+        const outline = "rgba(116, 72, 58, 0.2)";
+
+        context.fillStyle = skin;
+        context.strokeStyle = outline;
+        context.lineWidth = 1.5;
+        context.lineJoin = "round";
+
+        for (const side of [-1, 1]) {
+          context.beginPath();
+          context.moveTo(center + side * shoulder * 0.78, shoulderY + 4);
+          context.bezierCurveTo(
+            center + side * (shoulder + 14), shoulderY + 34,
+            center + side * (shoulder + 18), waistY - 42,
+            center + side * (shoulder + 5), waistY + 9,
+          );
+          context.quadraticCurveTo(
+            center + side * (shoulder - 5), waistY + 19,
+            center + side * (shoulder - 10), waistY + 4,
+          );
+          context.bezierCurveTo(
+            center + side * (shoulder + 1), waistY - 49,
+            center + side * (shoulder - 1), shoulderY + 63,
+            center + side * shoulder * 0.62, shoulderY + 24,
+          );
+          context.closePath();
+          context.fill();
+          context.stroke();
+
+          context.beginPath();
+          context.moveTo(center + side * hips * 0.52, crotchY - 2);
+          context.bezierCurveTo(
+            center + side * hips * 0.82, crotchY + 48,
+            center + side * legWidth * 1.1, footY - 76,
+            center + side * legWidth * 0.82, footY - 29,
+          );
+          context.quadraticCurveTo(
+            center + side * legWidth * 0.72, footY - 20,
+            center + side * legWidth * 0.12, footY - 24,
+          );
+          context.bezierCurveTo(
+            center + side * legWidth * 0.05, footY - 82,
+            center + side * hips * 0.28, crotchY + 55,
+            center + side * hips * 0.02, crotchY + 8,
+          );
+          context.closePath();
+          context.fill();
+          context.stroke();
+
+          context.beginPath();
+          context.ellipse(
+            center + side * legWidth * 0.72,
+            footY - 16,
+            20 * widthScale,
+            8 * heightScale,
+            side * -0.08,
+            0,
+            Math.PI * 2,
+          );
+          context.fill();
+          context.stroke();
+        }
+
+        context.beginPath();
+        context.moveTo(center - shoulder * 0.48, shoulderY - 27);
+        context.quadraticCurveTo(center, shoulderY - 42, center + shoulder * 0.48, shoulderY - 27);
+        context.bezierCurveTo(
+          center + shoulder, shoulderY - 10,
+          center + shoulder * 0.72, shoulderY + 28,
+          center + waist * 0.86, waistY,
+        );
+        context.quadraticCurveTo(center + hips * 1.03, hipY - 5, center + hips * 0.92, hipY + 20);
+        context.quadraticCurveTo(center + hips * 0.76, crotchY, center, crotchY + 6);
+        context.quadraticCurveTo(center - hips * 0.76, crotchY, center - hips * 0.92, hipY + 20);
+        context.quadraticCurveTo(center - hips * 1.03, hipY - 5, center - waist * 0.86, waistY);
+        context.bezierCurveTo(
+          center - shoulder * 0.72, shoulderY + 28,
+          center - shoulder, shoulderY - 10,
+          center - shoulder * 0.48, shoulderY - 27,
+        );
+        context.closePath();
+        context.fill();
+        context.stroke();
+
+        context.beginPath();
+        context.moveTo(center - 14 * widthScale, shoulderY - 40 * heightScale);
+        context.lineTo(center + 14 * widthScale, shoulderY - 40 * heightScale);
+        context.lineTo(center + 12 * widthScale, shoulderY - 5 * heightScale);
+        context.quadraticCurveTo(center, shoulderY + 6, center - 12 * widthScale, shoulderY - 5 * heightScale);
+        context.closePath();
+        context.fill();
+        context.stroke();
+
+        context.beginPath();
+        context.ellipse(center, headY, 24 * widthScale, 31 * heightScale, 0, 0, Math.PI * 2);
+        context.fill();
+        context.stroke();
+
+        context.fillStyle = "#493638";
+        context.beginPath();
+        if (modelGender === "male") {
+          context.moveTo(center - 23 * widthScale, headY - 5 * heightScale);
+          context.quadraticCurveTo(center - 22 * widthScale, headY - 32 * heightScale, center, headY - 32 * heightScale);
+          context.quadraticCurveTo(center + 24 * widthScale, headY - 30 * heightScale, center + 23 * widthScale, headY - 4 * heightScale);
+          context.lineTo(center + 17 * widthScale, headY - 14 * heightScale);
+          context.quadraticCurveTo(center, headY - 5 * heightScale, center - 17 * widthScale, headY - 13 * heightScale);
+          context.closePath();
+        } else {
+          context.moveTo(center - 24 * widthScale, headY - 4 * heightScale);
+          context.quadraticCurveTo(center - 24 * widthScale, headY - 33 * heightScale, center, headY - 33 * heightScale);
+          context.quadraticCurveTo(center + 25 * widthScale, headY - 31 * heightScale, center + 24 * widthScale, headY - 2 * heightScale);
+          context.quadraticCurveTo(center + 9 * widthScale, headY - 20 * heightScale, center - 2 * widthScale, headY - 18 * heightScale);
+          context.quadraticCurveTo(center - 13 * widthScale, headY - 11 * heightScale, center - 24 * widthScale, headY - 4 * heightScale);
+          context.closePath();
+        }
+        context.fill();
+
+        context.strokeStyle = "#684d48";
+        context.lineWidth = 1.5;
+        context.lineCap = "round";
+        context.beginPath();
+        context.moveTo(center - 10, headY + 2);
+        context.lineTo(center - 6, headY + 2);
+        context.moveTo(center + 6, headY + 2);
+        context.lineTo(center + 10, headY + 2);
+        context.moveTo(center - 4, headY + 16);
+        context.quadraticCurveTo(center, headY + 19, center + 4, headY + 16);
+        context.stroke();
+
+        return { center, headY, headWidth: 24 * widthScale, headHeight: 31 * heightScale, shoulderY, waistY, hipY, footY, shoulder, hips };
+      }
+
+      function sampleLayerImage(category) {
+        if (tryOnSampleImages[category]) return tryOnSampleImages[category];
+        const sample = TRYON_SAMPLE_SVGS[category] || TRYON_SAMPLE_SVGS.ao;
+        tryOnSampleImages[category] = new Promise((resolve, reject) => {
+          const vector = new Image();
+          vector.onload = () => {
+            const pngCanvas = document.createElement("canvas");
+            pngCanvas.width = sample.width;
+            pngCanvas.height = sample.height;
+            pngCanvas.getContext("2d").drawImage(vector, 0, 0, sample.width, sample.height);
+            const png = new Image();
+            png.onload = () => resolve(png);
+            png.onerror = reject;
+            png.src = pngCanvas.toDataURL("image/png");
+          };
+          vector.onerror = reject;
+          vector.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="${sample.width}" height="${sample.height}" viewBox="0 0 ${sample.width} ${sample.height}"><path d="${sample.path}" fill="${sample.color}" stroke="#76505f" stroke-width="5" stroke-linejoin="round"/>${sample.extra}</svg>`,
+          )}`;
+        }).catch((error) => {
+          delete tryOnSampleImages[category];
+          throw error;
+        });
+        return tryOnSampleImages[category];
+      }
+
+      function loadTryOnImage(url) {
+        if (tryOnImageCache.has(url)) return tryOnImageCache.get(url);
+        const promise = new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = () => reject(new Error("Không tải được ảnh lớp thử đồ."));
+          image.src = url;
+        });
+        tryOnImageCache.set(url, promise);
+        return promise;
+      }
+
+      function stopTryOnCamera() {
+        if (tryOnCameraStream) {
+          tryOnCameraStream.getTracks().forEach((track) => track.stop());
+          tryOnCameraStream = null;
+        }
+        const video = document.getElementById("tryonCameraVideo");
+        if (video) {
+          video.srcObject = null;
+          video.hidden = true;
+        }
+        const capture = document.getElementById("tryonCaptureFace");
+        if (capture) capture.hidden = true;
+      }
+
+      function handleTryOnConsent(accepted) {
+        document.getElementById("tryonChooseFace").disabled = !accepted;
+        document.getElementById("tryonStartCamera").disabled = !accepted;
+        if (!accepted) {
+          stopTryOnCamera();
+          clearTryOnFace();
+          document.getElementById("tryonFaceStatus").textContent =
+            "Ảnh khuôn mặt đã bị xóa khỏi bộ nhớ tạm của trang.";
+        } else {
+          document.getElementById("tryonFaceStatus").textContent =
+            "Ảnh chỉ được xử lý trong trình duyệt này.";
+        }
+      }
+
+      async function handleTryOnFaceFile(event) {
+        const file = event.target.files && event.target.files[0];
+        event.target.value = "";
+        if (!file) return;
+        if (!document.getElementById("tryonFaceConsent").checked) {
+          showToast("Hãy đồng ý xử lý ảnh trong trình duyệt trước.");
+          return;
+        }
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 8 * 1024 * 1024) {
+          showToast("Chọn ảnh JPG, PNG hoặc WebP nhỏ hơn 8 MB.");
+          return;
+        }
+        try {
+          stopTryOnCamera();
+          clearTryOnFace();
+          const objectUrl = URL.createObjectURL(file);
+          const image = new Image();
+          await new Promise((resolve, reject) => {
+            image.onload = resolve;
+            image.onerror = () => reject(new Error("Không thể đọc ảnh đã chọn."));
+            image.src = objectUrl;
+          });
+          if (!document.getElementById("tryonFaceConsent").checked) {
+            URL.revokeObjectURL(objectUrl);
+            return;
+          }
+          tryOnFaceImage = image;
+          tryOnFaceObjectUrl = objectUrl;
+          document.getElementById("tryonFaceStatus").textContent =
+            "Ảnh đang được giữ cục bộ trong trình duyệt.";
+          document.getElementById("tryonClearFace").hidden = false;
+          await renderTryOnCanvas();
+        } catch (error) {
+          showToast(error.message);
+        }
+      }
+
+      async function startTryOnCamera() {
+        if (!document.getElementById("tryonFaceConsent").checked) {
+          showToast("Hãy đồng ý xử lý ảnh trong trình duyệt trước.");
+          return;
+        }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          showToast("Trình duyệt này không hỗ trợ webcam. Hãy dùng HTTPS hoặc localhost.");
+          return;
+        }
+        try {
+          stopTryOnCamera();
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: { facingMode: "user" },
+          });
+          if (!document.getElementById("tryonFaceConsent").checked) {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
+          tryOnCameraStream = stream;
+          const video = document.getElementById("tryonCameraVideo");
+          video.srcObject = stream;
+          video.hidden = false;
+          document.getElementById("tryonCaptureFace").hidden = false;
+          await video.play();
+        } catch (error) {
+          stopTryOnCamera();
+          showToast(`Không mở được webcam: ${error.message}`);
+        }
+      }
+
+      async function captureTryOnFace() {
+        if (!document.getElementById("tryonFaceConsent").checked) {
+          showToast("Hãy đồng ý xử lý ảnh trong trình duyệt trước.");
+          return;
+        }
+        const video = document.getElementById("tryonCameraVideo");
+        if (!video.videoWidth || !video.videoHeight || !tryOnCameraStream) {
+          showToast("Webcam chưa sẵn sàng.");
+          return;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+        if (!blob) {
+          showToast("Không chụp được ảnh từ webcam.");
+          return;
+        }
+        try {
+          clearTryOnFace();
+          const objectUrl = URL.createObjectURL(blob);
+          const image = new Image();
+          await new Promise((resolve, reject) => {
+            image.onload = resolve;
+            image.onerror = () => reject(new Error("Không thể đọc ảnh webcam."));
+            image.src = objectUrl;
+          });
+          tryOnFaceImage = image;
+          tryOnFaceObjectUrl = objectUrl;
+          document.getElementById("tryonFaceStatus").textContent =
+            "Ảnh chụp webcam chỉ được giữ cục bộ trong trình duyệt.";
+          document.getElementById("tryonClearFace").hidden = false;
+          stopTryOnCamera();
+          await renderTryOnCanvas();
+        } catch (error) {
+          showToast(error.message);
+        }
+      }
+
+      function clearTryOnFace() {
+        if (tryOnFaceObjectUrl) URL.revokeObjectURL(tryOnFaceObjectUrl);
+        tryOnFaceObjectUrl = null;
+        tryOnFaceImage = null;
+        const clearButton = document.getElementById("tryonClearFace");
+        if (clearButton) clearButton.hidden = true;
+        const status = document.getElementById("tryonFaceStatus");
+        if (status) status.textContent = "Ảnh khuôn mặt đã được xóa.";
+        if (document.getElementById("tryonCanvas")) renderTryOnCanvas();
+      }
+
+      window.addEventListener("pagehide", () => {
+        stopTryOnCamera();
+        if (tryOnFaceObjectUrl) URL.revokeObjectURL(tryOnFaceObjectUrl);
+      });
+
+      function drawTryOnImage(context, image, target, preserveAspectRatio = true) {
+        if (!preserveAspectRatio) {
+          context.drawImage(image, target.x, target.y, target.width, target.height);
+          return;
+        }
+        const ratio = Math.min(target.width / image.width, target.height / image.height);
+        const width = image.width * ratio;
+        const height = image.height * ratio;
+        context.drawImage(
+          image,
+          target.x + (target.width - width) / 2,
+          target.y + (target.height - height) / 2,
+          width,
+          height,
+        );
+      }
+
+      function drawTryOnFace(context, metrics) {
+        if (!tryOnFaceImage) return;
+        const { center, headY, headWidth, headHeight } = metrics;
+        const cropSize = Math.min(tryOnFaceImage.width, tryOnFaceImage.height);
+        const sx = (tryOnFaceImage.width - cropSize) / 2;
+        const sy = (tryOnFaceImage.height - cropSize) / 2;
+        context.save();
+        context.beginPath();
+        context.ellipse(center, headY, headWidth, headHeight, 0, 0, Math.PI * 2);
+        context.clip();
+        context.drawImage(
+          tryOnFaceImage, sx, sy, cropSize, cropSize,
+          center - headWidth, headY - headHeight, headWidth * 2, headHeight * 2,
+        );
+        context.restore();
+      }
+
+      async function renderTryOnCanvas() {
+        const canvas = document.getElementById("tryonCanvas");
+        if (!canvas) return;
+        const context = canvas.getContext("2d");
+        const version = ++tryOnRenderVersion;
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = "#fffafd";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        const profile = savedBodyProfile || { height_cm: 165, weight_kg: 55, body_shape: "rectangle" };
+        const metrics = drawTryOnMannequin(context, profile);
+        drawTryOnFace(context, metrics);
+        let usedSample = false;
+        let accessoryIndex = 0;
+
+        try {
+          for (const item of selectedTryOnItems) {
+            let image;
+            if (item.layerUrl) {
+              try {
+                image = await loadTryOnImage(item.layerUrl);
+              } catch (error) {
+                if (version !== tryOnRenderVersion) return;
+                showToast(error.message);
+              }
+            }
+            if (!image) {
+              image = await sampleLayerImage(item.category);
+              usedSample = true;
+            }
+            if (version !== tryOnRenderVersion) return;
+
+            let target;
+            if (item.category === "ao") {
+              target = { x: metrics.center - metrics.shoulder * 1.08, y: metrics.shoulderY - 8, width: metrics.shoulder * 2.16, height: metrics.hipY - metrics.shoulderY + 20 };
+            } else if (item.category === "quan") {
+              target = { x: metrics.center - metrics.hips * 1.12, y: metrics.hipY - 18, width: metrics.hips * 2.24, height: metrics.footY - metrics.hipY + 22 };
+            } else if (item.category === "vay-dam") {
+              const width = Math.max(metrics.shoulder, metrics.hips) * 2.12;
+              target = { x: metrics.center - width / 2, y: metrics.shoulderY - 10, width, height: metrics.footY - metrics.shoulderY };
+            } else {
+              const side = accessoryIndex % 2 === 0 ? 1 : -1;
+              const row = Math.floor(accessoryIndex / 2);
+              target = {
+                x: metrics.center + side * (metrics.hips + 2) - (side < 0 ? 64 : 0),
+                y: metrics.shoulderY + row * 74,
+                width: 62,
+                height: 72,
+              };
+              accessoryIndex += 1;
+            }
+            drawTryOnImage(context, image, target, Boolean(item.layerUrl));
+          }
+        } catch (error) {
+          showToast("Không tạo được ảnh thử đồ. Vui lòng thử lại.");
+        }
+        if (version !== tryOnRenderVersion) return;
+        const status = document.getElementById("tryonStatus");
+        status.textContent = !savedBodyProfile
+          ? "Đang dùng người mẫu mặc định. Hãy nhập số đo để cá nhân hóa tỷ lệ."
+          : usedSample
+            ? "Một số sản phẩm chưa có ảnh lớp thử đồ; đang dùng lớp PNG mẫu."
+            : "Tỷ lệ người mẫu được ước tính từ chiều cao, cân nặng và dáng người.";
+      }
+
+      async function loadTryOnCartItems() {
+        renderTryOnCartItems();
+        renderTryOnSelectedItems();
+        if (!bodyProfileLoaded) await loadBodyProfile();
+        await renderTryOnCanvas();
       }
 
       // Đơn của server đổi về dạng mà hàm renderOrders cũ đang dùng
       function mapOrder(o) {
         return {
           id: o.id,
+          shopId: o.shop_id,
           rawStatus: o.status,
           status: ORDER_TAB[o.status] || "lay_hang",
           store: escapeHtml(o.shop_name || "Shop"),
@@ -2019,6 +2848,7 @@
           handleApiError(err);
         }
         renderOrders();
+        updateOrderNotifications();
       }
 
       // Mở hộp thoại thêm giỏ: lấy size, màu, tồn kho thật của sản phẩm
@@ -2202,7 +3032,7 @@
         placingOrder = true;
         try {
           const pos = await getPosition();
-          const data = await api("/orders/checkout", {
+          await api("/orders/checkout", {
             method: "POST",
             body: {
               cart_item_ids: selectedCart.map((c) => c.cartItemId),
@@ -2214,13 +3044,8 @@
               lng: pos ? pos.lng : undefined,
             },
           });
-          const codes = data.orders.map((o) => "#" + o.id).join(", ");
           await Promise.all([loadCart(), loadOrders()]);
 
-          addNotification(
-            "Đặt hàng thành công!",
-            `Đơn hàng ${codes} đã được tạo và chuyển sang mục Đang lấy hàng.`,
-          );
           showToast("Đặt hàng hoàn tất!");
 
           activeTab = "lay_hang";
@@ -2243,10 +3068,6 @@
         try {
           await api(`/orders/${order.id}/cancel`, { method: "POST" });
           closeModal("cancelOrderModal");
-          addNotification(
-            "Hủy đơn thành công",
-            `Đơn hàng #${order.id} đã được hủy.`,
-          );
           showToast(`Đã hủy đơn hàng #${order.id}.`);
           await loadOrders();
         } catch (err) {
@@ -2255,22 +3076,9 @@
       }
       // ===== Hết Patch 02 =====
 
-      let notifications = [
-        {
-          id: 1,
-          title: "Chào mừng bạn đến với Fashion Store!",
-          content:
-            "Chúc bạn có trải nghiệm mua sắm tuyệt vời cùng nhiều ưu đãi hấp dẫn.",
-          time: "Hôm nay, 09:30",
-        },
-        {
-          id: 2,
-          title: "Ưu đãi thành viên mới",
-          content:
-            "Nhập mã GIAM30K để được giảm ngay 30.000 VNĐ cho đơn hàng đầu tiên.",
-          time: "Hôm nay, 08:00",
-        },
-      ];
+      let notifications = [];
+      let orderNotifications = [];
+      let messageNotifications = [];
 
       let cart = [];
       let myOrders = [];
@@ -2355,13 +3163,26 @@
 
       document.addEventListener("DOMContentLoaded", async () => {
         if (!requireRole("buyer")) return; // chưa đăng nhập hoặc sai vai trò thì về trang đăng nhập
-        await Promise.all([loadProducts(), loadCart(), loadOrders()]);
+        await Promise.all([
+          loadBuyerProfile(),
+          loadProducts(),
+          loadCart(),
+          loadOrders(),
+          loadBuyerTickets(),
+          loadDerivedNotifications(),
+        ]);
         prefillCheckout();
         renderHomeProducts();
         renderProducts(products);
         updateCartUI();
         renderOrders();
         updateNotifBadge();
+        window.setInterval(() => {
+          if (!document.hidden) {
+            loadOrders();
+            loadDerivedNotifications();
+          }
+        }, 15000);
       });
 
       // TÍNH NĂNG TÌM KIẾM SẢN PHẨM, THƯƠNG HIỆU, CỬA HÀNG
@@ -2420,6 +3241,7 @@
             <div class="store-name">🏪 ${p.store}</div>
             ${ratingLine(p)}
             <div class="price">${p.price.toLocaleString("vi-VN")} VNĐ</div>
+            <button class="btn btn-light" onclick="openChatModal('', ${p.shopId}, ${p.id})">💬 Nhắn shop</button>
             <button class="btn btn-primary" style="background:var(--pink-main);" onclick="openAddToCartModal(${p.id})">🛒 Chọn & Thêm Giỏ Hàng</button>
           </div>
         `,
@@ -2440,6 +3262,7 @@
             <div class="store-name">🏪 ${p.store}</div>
             ${ratingLine(p)}
             <div class="price">${p.price.toLocaleString("vi-VN")} VNĐ</div>
+            <button class="btn btn-light" onclick="openChatModal('', ${p.shopId}, ${p.id})">💬 Nhắn shop</button>
             <button class="btn btn-primary" style="background:var(--pink-main);" onclick="openAddToCartModal(${p.id})">🛒 Chọn & Thêm Giỏ Hàng</button>
           </div>
         `,
@@ -2457,13 +3280,58 @@
           return;
         }
 
-        document.getElementById("ticketSubject").value = "";
-        document.getElementById("ticketContent").value = "";
-        addNotification("Đã gửi Ticket hỗ trợ Admin", `Chủ đề: "${subject}".`);
-        showToast(
-          "Gửi yêu cầu hỗ trợ Admin thành công! Chúng tôi sẽ sớm phản hồi.",
-        );
+        api("/tickets", { method: "POST", body: { subject, content } })
+          .then(async () => {
+            document.getElementById("ticketSubject").value = "";
+            document.getElementById("ticketContent").value = "";
+            await loadBuyerTickets();
+            showToast("Đã gửi yêu cầu hỗ trợ Admin.");
+          })
+          .catch(handleApiError);
       }
+
+      async function loadBuyerTickets() {
+        const container = document.getElementById("buyerTicketList");
+        if (!container) return;
+        try {
+          const data = await api("/tickets");
+          container.innerHTML = `<h3 style="margin-bottom:10px">Yêu cầu đã gửi</h3>${
+            data.items.length
+              ? data.items.map((ticket) => `
+                <article class="ticket-thread">
+                  <strong>${escapeHtml(ticket.subject)}</strong>
+                  <p style="margin:8px 0">${escapeHtml(ticket.content)}</p>
+                  <small>${new Date(ticket.created_at).toLocaleString("vi-VN")}</small>
+                  ${(ticket.replies || []).map((reply) => `
+                    <p style="margin:8px 0;padding:8px;background:var(--pink-pale);border-radius:8px">
+                      <strong>${escapeHtml(reply.user_name)}:</strong> ${escapeHtml(reply.content)}
+                    </p>`).join("")}
+                  <div style="display:flex;gap:8px;margin-top:10px">
+                    <input data-ticket-reply="${ticket.id}" maxlength="4000" placeholder="Trả lời Admin..." style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px">
+                    <button class="btn btn-light" data-send-ticket-reply="${ticket.id}">Gửi</button>
+                  </div>
+                </article>`).join("")
+              : '<p style="color:var(--text-muted)">Bạn chưa gửi yêu cầu nào.</p>'
+          }`;
+        } catch (err) {
+          container.textContent = err.message;
+        }
+      }
+
+      document.getElementById("buyerTicketList").addEventListener("click", async (event) => {
+        const button = event.target.closest("[data-send-ticket-reply]");
+        if (!button) return;
+        const ticketId = button.dataset.sendTicketReply;
+        const input = document.querySelector(`[data-ticket-reply="${ticketId}"]`);
+        const content = input.value.trim();
+        if (!content) return showToast("Vui lòng nhập nội dung phản hồi.");
+        try {
+          await api(`/tickets/${ticketId}/reply`, { method: "POST", body: { content } });
+          await loadBuyerTickets();
+        } catch (err) {
+          handleApiError(err);
+        }
+      });
 
       function updateCartUI() {
         const tbody = document.getElementById("cartTableBody");
@@ -2613,12 +3481,10 @@
             .join("")}
 
           ${order.cancelReason ? `<div style="font-size:13px; color:var(--red);">Lý do hủy: ${order.cancelReason}</div>` : ""}
-          ${order.returnReason ? `<div style="font-size:13px; color:var(--orange);">Lý do trả hàng: ${order.returnReason}</div>` : ""}
-
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; border-top:1px solid var(--border); padding-top:10px;">
             <div>Tổng tiền: <strong style="color:var(--pink-dark);">${order.total.toLocaleString("vi-VN")} VNĐ</strong></div>
             <div style="display:flex; gap:8px;">
-              <button class="btn btn-light" onclick="openChatModal('${order.store}')">💬 Liên hệ Shop</button>
+              <button class="btn btn-light" onclick="openChatModal('', ${order.shopId})">💬 Liên hệ Shop</button>
               ${order.status === "lay_hang" || order.status === "cho_giao" ? `<button class="btn btn-danger" onclick="openCancelModal(${order.id})">Hủy Đơn Hàng</button>` : ""}
               ${order.status === "da_giao" ? `<button class="btn btn-light" onclick="openReturnModal(${order.id})">Trả Hàng / Hoàn Tiền</button>` : ""}
             </div>
@@ -2663,90 +3529,229 @@
         selectedOrderForAction = orderId;
         document.getElementById("returnOrderModal").style.display = "flex";
       }
-      function submitReturnOrder() {
+      async function submitReturnOrder() {
         const reason = document.getElementById("returnReason").value;
         const order = myOrders.find((o) => o.id === selectedOrderForAction);
-        if (order) {
-          order.status = "da_tra";
-          order.returnReason = reason;
+        if (!order) return;
+        try {
+          await api("/chat/messages", {
+            method: "POST",
+            body: {
+              shop_id: order.shopId,
+              content: `Xin chào shop, tôi muốn yêu cầu trả hàng cho đơn #${order.id}. Lý do: ${reason}`,
+            },
+          });
           closeModal("returnOrderModal");
-          addNotification(
-            "Đã gửi yêu cầu trả hàng",
-            `Đơn #${order.id} đang chờ xử lý.`,
-          );
           showToast(`Đã gửi yêu cầu trả hàng cho đơn #${order.id}.`);
-          renderOrders();
+          await openChatModal(order.store, order.shopId);
+        } catch (err) {
+          handleApiError(err);
         }
       }
 
       // PROFILE & AVATAR LOGIC
-      function handleAvatarChange(e) {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function (evt) {
-            const imgUrl = evt.target.result;
-            document.getElementById("largeAvatarBox").innerHTML =
-              `<img src="${imgUrl}">`;
-            document.getElementById("headerAvatar").innerHTML =
-              `<img src="${imgUrl}">`;
-            document.getElementById("dropdownAvatar").innerHTML =
-              `<img src="${imgUrl}">`;
-            showToast("Đã đổi ảnh đại diện thành công!");
-          };
-          reader.readAsDataURL(file);
+      let buyerProfile = null;
+
+      function avatarInitials(name) {
+        return (name || "Buyer")
+          .trim()
+          .split(/\s+/)
+          .slice(-2)
+          .map((part) => part[0] || "")
+          .join("")
+          .toUpperCase();
+      }
+
+      function renderAvatar(elementId, url, initials, alt) {
+        const element = document.getElementById(elementId);
+        element.replaceChildren();
+        const imageUrl = safeImg(url);
+        if (imageUrl) {
+          const image = document.createElement("img");
+          image.src = imageUrl;
+          image.alt = alt;
+          element.appendChild(image);
+        } else {
+          element.textContent = initials;
+        }
+      }
+
+      function applyBuyerProfile(profile) {
+        buyerProfile = profile;
+        const name = profile.full_name || profile.username || "Buyer";
+        document.getElementById("profName").value = profile.full_name || "";
+        document.getElementById("profEmail").value = profile.email || "";
+        document.getElementById("profPhone").value = profile.phone || "";
+        document.getElementById("profAddress").value = profile.address || "";
+        document.getElementById("ddName").textContent = name;
+        document.getElementById("ddEmail").textContent = profile.email || "";
+        const initials = avatarInitials(name);
+        renderAvatar("largeAvatarBox", profile.avatar_url, initials, "Ảnh đại diện");
+        renderAvatar("headerAvatar", profile.avatar_url, initials, "Ảnh đại diện");
+        renderAvatar("dropdownAvatar", profile.avatar_url, initials, "Ảnh đại diện");
+        syncProfileInfo();
+      }
+
+      async function loadBuyerProfile() {
+        try {
+          const profile = await api("/me");
+          applyBuyerProfile(profile);
+          const session = getSession();
+          if (session) saveSession({ ...session, me: profile });
+        } catch (err) {
+          handleApiError(err);
         }
       }
 
       function syncProfileInfo() {
         const name =
-          document.getElementById("profName").value || "My Fashion Store";
-        document.getElementById("ddName").innerText = name;
+          document.getElementById("profName").value.trim() ||
+          buyerProfile?.username ||
+          "Buyer";
+        document.getElementById("ddName").textContent = name;
         document.getElementById("chkName").value = name;
       }
 
-      function saveProfile() {
-        syncProfileInfo();
-        showToast("Cập nhật thông tin hồ sơ thành công!");
+      async function saveProfile() {
+        try {
+          const profile = await api("/me", {
+            method: "PATCH",
+            body: {
+              full_name: document.getElementById("profName").value,
+              phone: document.getElementById("profPhone").value,
+              address: document.getElementById("profAddress").value,
+            },
+          });
+          applyBuyerProfile(profile);
+          const session = getSession();
+          if (session) saveSession({ ...session, me: profile });
+          showToast("Cập nhật thông tin hồ sơ thành công!");
+        } catch (err) {
+          handleApiError(err);
+        }
+      }
+
+      async function handleAvatarChange(event) {
+        const input = event.target;
+        const file = input.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+          showToast("Ảnh đại diện tối đa 2 MB.");
+          input.value = "";
+          return;
+        }
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+          showToast("Ảnh đại diện phải là JPG, PNG hoặc WEBP.");
+          input.value = "";
+          return;
+        }
+
+        const button = document.getElementById("avatarUploadButton");
+        button.disabled = true;
+        const form = new FormData();
+        form.append("file", file);
+        try {
+          const profile = await api("/me/avatar", { method: "POST", body: form });
+          applyBuyerProfile(profile);
+          const session = getSession();
+          if (session) saveSession({ ...session, me: profile });
+          showToast("Đã cập nhật ảnh đại diện.");
+        } catch (err) {
+          handleApiError(err);
+        } finally {
+          button.disabled = false;
+          input.value = "";
+        }
       }
 
       // NOTIFICATIONS & PASSWORD MODALS
+      function statusNotificationLabel(status) {
+        return {
+          pending: "Đang chờ shop xác nhận",
+          processing: "Shop đang chuẩn bị hàng",
+          shipping: "Đơn hàng đang được giao",
+          completed: "Đơn hàng đã giao thành công",
+          cancelled: "Đơn hàng đã hủy",
+        }[status] || status;
+      }
+
+      function updateOrderNotifications() {
+        orderNotifications = myOrders.map((order) => ({
+          id: `order-${order.id}-${order.rawStatus}`,
+          title: `Cập nhật đơn hàng #${order.id}`,
+          content: statusNotificationLabel(order.rawStatus),
+          time: order.date,
+        }));
+        refreshNotificationsList();
+      }
+
+      function updateMessageNotifications(conversations) {
+        messageNotifications = conversations
+          .filter((conversation) => conversation.unread > 0)
+          .map((conversation) => ({
+            id: `chat-${conversation.user_id}`,
+            title: `${conversation.name}: ${conversation.unread} tin nhắn chưa đọc`,
+            content: conversation.last_message,
+            time: conversation.last_at
+              ? new Date(conversation.last_at).toLocaleString("vi-VN")
+              : "",
+          }));
+        refreshNotificationsList();
+      }
+
+      function refreshNotificationsList() {
+        notifications = [...messageNotifications, ...orderNotifications].slice(0, 30);
+        updateNotifBadge();
+        if (document.getElementById("notificationsModal").style.display === "flex") {
+          renderNotifications();
+        }
+      }
+
+      async function loadDerivedNotifications() {
+        try {
+          updateMessageNotifications(await api("/chat/conversations"));
+        } catch (err) {
+          handleApiError(err);
+        }
+      }
+
       function openNotificationsModal() {
         renderNotifications();
         document.getElementById("notificationsModal").style.display = "flex";
+        loadOrders();
+        loadDerivedNotifications();
       }
 
       function renderNotifications() {
         const list = document.getElementById("notificationsList");
-        if (notifications.length === 0) {
-          list.innerHTML = `<div class="empty-notif"><div>🔕</div><p>Hiện chưa có thông báo nào</p></div>`;
+        list.replaceChildren();
+        if (!notifications.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty-notif";
+          empty.innerHTML = "<div>🔕</div><p>Hiện chưa có thông báo nào</p>";
+          list.appendChild(empty);
         } else {
-          list.innerHTML = notifications
-            .map(
-              (n) => `
-          <div class="notif-item">
-            <div>
-              <div class="notif-title">${n.title}</div>
-              <div style="font-size:13px; color:var(--text-dark); margin-top:3px;">${n.content}</div>
-              <div class="notif-time">${n.time}</div>
-            </div>
-            <button class="btn btn-light" style="padding:2px 6px; font-size:11px;" onclick="deleteNotif(${n.id})">✕</button>
-          </div>
-        `,
-            )
-            .join("");
+          notifications.forEach((notification) => {
+            const item = document.createElement("div");
+            item.className = "notif-item";
+            const details = document.createElement("div");
+            const title = document.createElement("div");
+            title.className = "notif-title";
+            title.textContent = notification.title;
+            const content = document.createElement("div");
+            content.style.cssText = "font-size:13px; color:var(--text-dark); margin-top:3px;";
+            content.textContent = notification.content;
+            const time = document.createElement("div");
+            time.className = "notif-time";
+            time.textContent = notification.time;
+            details.append(title, content, time);
+            item.appendChild(details);
+            list.appendChild(item);
+          });
         }
         updateNotifBadge();
       }
 
-      function deleteNotif(id) {
-        notifications = notifications.filter((n) => n.id !== id);
-        renderNotifications();
-      }
-      function clearAllNotifications() {
-        notifications = [];
-        renderNotifications();
-      }
       function updateNotifBadge() {
         const badge = document.getElementById("notifBadge");
         if (badge) {
@@ -2754,58 +3759,196 @@
           badge.style.display = notifications.length > 0 ? "flex" : "none";
         }
       }
-      function addNotification(title, content) {
-        const timeStr =
-          "Mới xong, " +
-          new Date().toLocaleTimeString("vi-VN", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-        notifications.unshift({
-          id: Date.now(),
-          title,
-          content,
-          time: timeStr,
-        });
-        updateNotifBadge();
-      }
-
       function openChangePasswordModal() {
         document.getElementById("changePasswordModal").style.display = "flex";
       }
-      function submitChangePassword() {
+      async function submitChangePassword() {
         const o = document.getElementById("oldP").value;
         const n = document.getElementById("newP").value;
         const c = document.getElementById("confP").value;
         if (!o || !n || !c) return showToast("Vui lòng điền đầy đủ mật khẩu!");
         if (n !== c) return showToast("Mật khẩu xác nhận không trùng khớp!");
-        closeModal("changePasswordModal");
-        alert(i18n[currentLang].pass_alert);
+        try {
+          await api("/me/change-password", {
+            method: "POST",
+            body: { current_password: o, new_password: n },
+          });
+          document.getElementById("oldP").value = "";
+          document.getElementById("newP").value = "";
+          document.getElementById("confP").value = "";
+          closeModal("changePasswordModal");
+          clearSession();
+          showToast("Đổi mật khẩu thành công. Vui lòng đăng nhập lại.");
+          setTimeout(() => (window.location.href = LOGIN_PAGE), 1200);
+        } catch (err) {
+          handleApiError(err);
+        }
       }
 
       // CHAT VỚI SHOP
-      function openChatModal(shopName) {
-        document.getElementById("chatShopTitle").innerText =
-          `💬 Trò chuyện với ${shopName}`;
-        document.getElementById("chatModal").style.display = "flex";
+      function productAttachment(product) {
+        const card = document.createElement("div");
+        card.className = "chat-product-attachment";
+        if (product.image_url || product.img) {
+          const image = document.createElement("img");
+          image.src = safeImg(product.image_url || product.img);
+          image.alt = "";
+          card.appendChild(image);
+        }
+        const details = document.createElement("div");
+        const name = document.createElement("strong");
+        name.textContent = product.rawName || product.name || "Sản phẩm";
+        const price = document.createElement("span");
+        price.textContent = `${Number(product.price || 0).toLocaleString("vi-VN")} VNĐ`;
+        details.append(name, price);
+        card.appendChild(details);
+        return card;
       }
 
-      function sendChatMessage() {
+      function renderChatProductContext() {
+        const context = document.getElementById("chatProductContext");
+        context.replaceChildren();
+        context.hidden = !activeChatProduct;
+        if (activeChatProduct) context.appendChild(productAttachment(activeChatProduct));
+      }
+
+      async function openChatModal(shopName, shopId, productId) {
+        if (!shopId) {
+          const selected = cart.find((item) => item.checked && item.shopId);
+          shopId = selected?.shopId || products[0]?.shopId;
+        }
+        if (!shopId) return showToast("Chưa có cửa hàng để bắt đầu trò chuyện.");
+        if (chatPollTimer) clearInterval(chatPollTimer);
+        activeChatUserId = null;
+        activeChatShopId = shopId;
+        activeChatProduct = products.find((item) => item.id === Number(productId)) || null;
+        lastChatAt = null;
+        document.getElementById("chatShopTitle").innerText = `💬 Trò chuyện với ${shopName || "Shop"}`;
+        document.getElementById("chatMessagesBox").innerHTML = "";
+        renderChatProductContext();
+        document.getElementById("chatModal").style.display = "flex";
+        try {
+          const contact = await api(`/chat/shops/${shopId}`);
+          activeChatUserId = contact.user_id;
+          document.getElementById("chatShopTitle").innerText = `💬 Trò chuyện với ${contact.name}`;
+          await Promise.all([loadConversations(), loadChatMessages(false)]);
+          chatPollTimer = setInterval(() => {
+            loadChatMessages(true);
+            loadConversations().catch(handleApiError);
+          }, 3000);
+        } catch (err) {
+          handleApiError(err);
+        }
+      }
+
+      async function loadConversations() {
+        const list = document.getElementById("chatConversationList");
+        const data = await api("/chat/conversations");
+        updateMessageNotifications(data);
+        list.innerHTML = data.map((conversation) => `
+          <button class="chat-conversation" data-chat-user="${escapeHtml(conversation.user_id)}">
+            ${escapeHtml(conversation.name)}${conversation.unread ? ` (${conversation.unread})` : ""}
+          </button>`).join("");
+      }
+
+      async function loadChatMessages(incremental) {
+        if (!activeChatUserId) return;
+        const query = new URLSearchParams({ with: activeChatUserId });
+        if (incremental && lastChatAt) query.set("after", lastChatAt);
+        try {
+          const data = await api(`/chat/messages?${query.toString()}`);
+          const box = document.getElementById("chatMessagesBox");
+          if (!incremental) box.innerHTML = "";
+          if (data.length) {
+            const suggestions = box.querySelector(".chat-suggestions");
+            if (suggestions) suggestions.remove();
+          }
+          if (!incremental && !data.length) {
+            const suggestions = document.createElement("div");
+            suggestions.className = "chat-suggestions";
+            const prompt = document.createElement("p");
+            prompt.textContent = "Bạn có thể hỏi shop:";
+            suggestions.appendChild(prompt);
+            [
+              "Sản phẩm còn hàng không?",
+              "Shop còn size hoặc màu này không?",
+              "Đơn hàng của tôi đang ở đâu?",
+            ].forEach((text) => {
+              const button = document.createElement("button");
+              button.type = "button";
+              button.dataset.chatSuggestion = text;
+              button.textContent = text;
+              suggestions.appendChild(button);
+            });
+            box.appendChild(suggestions);
+          }
+          data.forEach((message) => {
+            const bubble = document.createElement("div");
+            bubble.className = `chat-bubble ${message.sender_id === activeChatUserId ? "shop" : "user"}`;
+            if (message.product) bubble.appendChild(productAttachment(message.product));
+            const content = document.createElement("div");
+            content.textContent = message.content;
+            bubble.appendChild(content);
+            box.appendChild(bubble);
+            lastChatAt = message.created_at;
+          });
+          box.scrollTop = box.scrollHeight;
+          if (data.length) await loadConversations();
+        } catch (err) {
+          handleApiError(err);
+        }
+      }
+
+      async function selectChatConversation(userId) {
+        activeChatUserId = userId;
+        activeChatShopId = null;
+        activeChatProduct = null;
+        renderChatProductContext();
+        lastChatAt = null;
+        document.getElementById("chatMessagesBox").innerHTML = "";
+        await loadChatMessages(false);
+      }
+
+      document.getElementById("chatConversationList").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-chat-user]");
+        if (button) selectChatConversation(button.dataset.chatUser);
+      });
+
+      document.getElementById("chatMessagesBox").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-chat-suggestion]");
+        if (!button) return;
+        const input = document.getElementById("chatInputText");
+        input.value = button.dataset.chatSuggestion;
+        input.focus();
+      });
+
+      async function sendChatMessage() {
         const input = document.getElementById("chatInputText");
         const text = input.value.trim();
         if (!text) return;
-        const box = document.getElementById("chatMessagesBox");
-        box.innerHTML += `<div class="chat-bubble user">${text}</div>`;
-        input.value = "";
-        box.scrollTop = box.scrollHeight;
-        setTimeout(() => {
-          box.innerHTML += `<div class="chat-bubble shop">Cảm ơn bạn đã nhắn tin. Shop đã nhận được thông tin và sẽ phản hồi ngay ạ!</div>`;
-          box.scrollTop = box.scrollHeight;
-        }, 1000);
+        if (!activeChatUserId && !activeChatShopId) return showToast("Hãy chọn cửa hàng trước.");
+        const body = activeChatUserId
+          ? { receiver_id: activeChatUserId, content: text }
+          : { shop_id: activeChatShopId, content: text };
+        if (activeChatProduct) body.product_id = activeChatProduct.id;
+        try {
+          const message = await api("/chat/messages", { method: "POST", body });
+          activeChatUserId = message.receiver_id;
+          activeChatShopId = null;
+          activeChatProduct = null;
+          renderChatProductContext();
+          input.value = "";
+          await Promise.all([loadChatMessages(false), loadConversations()]);
+        } catch (err) {
+          handleApiError(err);
+        }
       }
 
       function handleChatKey(e) {
-        if (e.key === "Enter") sendChatMessage();
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendChatMessage();
+        }
       }
 
       // ===== Patch 08: gợi ý AI theo số đo, chatbot, đánh giá sản phẩm =====
@@ -2822,7 +3965,6 @@
         ["mua-he", "Mùa hè"],
         ["cao-cap", "Cao cấp"],
       ];
-      let bodyProfileLoaded = false;
       let reviewProductId = null;
       let reviewRating = 5;
       let botBusy = false;
@@ -2840,6 +3982,7 @@
           name: escapeHtml(c.name),
           rawName: c.name,
           price: c.price,
+          category: c.category,
           store: escapeHtml(c.shop_name),
           shopId: c.shop_id,
           img: safeImg(c.image_url),
@@ -2884,7 +4027,9 @@
         try {
           const p = await api("/me/body-profile");
           bodyProfileLoaded = true;
+          savedBodyProfile = p || null;
           if (!p) return;
+          document.getElementById("bpGender").value = p.model_gender || "female";
           document.getElementById("bpHeight").value = p.height_cm;
           document.getElementById("bpWeight").value = p.weight_kg;
           document.getElementById("bpShape").value = p.body_shape;
@@ -2923,6 +4068,7 @@
               <span class="score-badge">Độ phù hợp ${Math.round(it.score)}%</span>
               <ul class="reason-list">${reasons}</ul>
               <button class="btn btn-light" style="font-size: 12px; padding: 4px 10px;" data-rec="${i}">Chọn &amp; Thêm giỏ</button>
+              <button class="btn btn-light" style="font-size: 12px; padding: 4px 10px;" data-tryon-rec="${i}">Thử đồ</button>
             </div>
           </div>`;
             })
@@ -2933,6 +4079,11 @@
             openProductFromAi(it.product.id, it.product);
           }),
         );
+          box.querySelectorAll("[data-tryon-rec]").forEach((btn) =>
+            btn.addEventListener("click", () =>
+              addTryOnProduct(items[Number(btn.dataset.tryonRec)].product),
+            ),
+          );
       }
 
       async function saveAndRecommend() {
@@ -2949,9 +4100,10 @@
         box.innerHTML =
           '<p style="color: var(--text-muted);">AI đang tìm sản phẩm phù hợp với bạn...</p>';
         try {
-          await api("/me/body-profile", {
+          savedBodyProfile = await api("/me/body-profile", {
             method: "PUT",
             body: {
+              model_gender: document.getElementById("bpGender").value,
               height_cm: Number(height),
               weight_kg: Number(weight),
               body_shape: shape,
@@ -2962,6 +4114,9 @@
               wishes: document.getElementById("bpWishes").value,
             },
           });
+          if (document.getElementById("tryon-page").classList.contains("active")) {
+            renderTryOnCanvas();
+          }
           const data = await api("/ai/recommend", {
             method: "POST",
             body: { limit: 8 },
@@ -3126,6 +4281,12 @@
       }
 
       function showPage(pageId, btn) {
+        if (
+          document.getElementById("tryon-page").classList.contains("active") &&
+          pageId !== "tryon-page"
+        ) {
+          stopTryOnCamera();
+        }
         document
           .querySelectorAll(".page")
           .forEach((p) => p.classList.remove("active"));
@@ -3138,10 +4299,15 @@
         }
         if (pageId === "cart-page") updateCartUI();
         if (pageId === "orders-page") renderOrders();
+        if (pageId === "tryon-page") loadTryOnCartItems();
       }
 
       function closeModal(id) {
         document.getElementById(id).style.display = "none";
+        if (id === "chatModal" && chatPollTimer) {
+          clearInterval(chatPollTimer);
+          chatPollTimer = null;
+        }
       }
       function toggleUserDropdown(e) {
         if (e) e.stopPropagation();

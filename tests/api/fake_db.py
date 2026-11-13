@@ -93,6 +93,8 @@ class FakeDB:
             "products": {"is_active": True, "sold_count": 0, "risk_score": 0, "risk_reasons": []},
             "ai_block_logs": {"created_at": _now, "restored": False},
             "moderation_queue": {"created_at": _now, "status": "pending"},
+            "messages": {"created_at": _now, "is_read": False},
+            "tickets": {"created_at": _now, "status": "open", "parent_id": None},
         }
         self.storage = FakeStorage()
         self._ids = {}

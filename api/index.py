@@ -24,8 +24,8 @@ def create_app():
     app = Flask(__name__, static_folder=static_dir, static_url_path="")
     app.config["MAX_CONTENT_LENGTH"] = 6 * 1024 * 1024  # chặn request quá lớn (ảnh tối đa 5 MB cộng phần đầu form)
 
-    from .routes import admin, ai, auth, cart, events, me, orders, products, seller, seller_catalog, seller_dashboard
-    for module in (admin, ai, auth, cart, events, me, orders, products, seller, seller_catalog, seller_dashboard):
+    from .routes import admin, ai, auth, cart, chat, events, me, orders, products, seller, seller_catalog, seller_dashboard, tickets
+    for module in (admin, ai, auth, cart, chat, events, me, orders, products, seller, seller_catalog, seller_dashboard, tickets):
         app.register_blueprint(module.bp)
 
     @app.get("/")

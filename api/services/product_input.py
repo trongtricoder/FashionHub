@@ -4,6 +4,7 @@ import unicodedata
 
 CATEGORIES = ("ao", "quan", "vay-dam", "phu-kien")
 SHAPES = ("pear", "hourglass", "rectangle", "apple", "inverted_triangle")
+MODEL_GENDERS = ("female", "male")
 
 MAX_VARIANTS = 30
 MAX_IMAGES = 8
@@ -149,6 +150,9 @@ def parse_body_profile(body):
     shape = body.get("body_shape")
     if shape not in SHAPES:
         raise InputError("Vui lòng chọn dáng người.")
+    model_gender = body.get("model_gender", "female")
+    if model_gender not in MODEL_GENDERS:
+        raise InputError("Kiểu người mẫu không hợp lệ.")
 
     raw_tags = body.get("style_tags") or []
     if not isinstance(raw_tags, list):
@@ -165,6 +169,7 @@ def parse_body_profile(body):
     return {
         "height_cm": _int(body.get("height_cm"), "Chiều cao (cm)", 100, 230),
         "weight_kg": _int(body.get("weight_kg"), "Cân nặng (kg)", 25, 200),
+        "model_gender": model_gender,
         "body_shape": shape,
         "style_tags": tags,
         "budget_max": None if budget in (None, "") else _int(budget, "Ngân sách", 0, 100_000_000),

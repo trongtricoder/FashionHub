@@ -1,5 +1,6 @@
 """Test Admin: tài khoản, hàng đợi duyệt, nhật ký AI chặn, đổi mật khẩu."""
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 
 import pytest
 
@@ -275,11 +276,25 @@ def test_khoi_phuc_shop(client, db):
 
 # ---------- đổi mật khẩu (sau khi Admin đặt lại) ----------
 
-def test_doi_mat_khau_bo_co_bat_doi(client, db):
+def test_doi_mat_khau_can_xac_nhan_mat_khau_hien_tai(client, db, monkeypatch):
     db.tables["profiles"][3]["status"] = "active"          # buyer2 được mở khóa
     h = {"Authorization": "Bearer tok-b2"}
+    def sign_in(credentials):
+        if credentials["password"] != "MatKhauCu9":
+            raise ValueError("Mật khẩu hiện tại không đúng")
+        return SimpleNamespace(session=True)
+
+    monkeypatch.setattr(me_routes, "new_anon_client", lambda: SimpleNamespace(
+        auth=SimpleNamespace(sign_in_with_password=sign_in)))
     assert client.post("/api/me/change-password", json={"new_password": "12345"}, headers=h).status_code == 400
-    assert client.post("/api/me/change-password", json={"new_password": "MatKhauMoi9"}, headers=h).status_code == 200
+    wrong = client.post("/api/me/change-password", json={
+        "current_password": "SaiMatKhau9", "new_password": "MatKhauMoi9",
+    }, headers=h)
+    assert wrong.status_code == 401
+    changed = client.post("/api/me/change-password", json={
+        "current_password": "MatKhauCu9", "new_password": "MatKhauMoi9",
+    }, headers=h)
+    assert changed.status_code == 200
     assert db.passwords[UID["b2"]] == "MatKhauMoi9" and profile(db, "b2")["must_change_password"] is False
     assert client.post("/api/me/change-password", json={"new_password": "MatKhauMoi9"}).status_code == 401
 

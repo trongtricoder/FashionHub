@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seller Pro - Ticket Hỗ Trợ Admin</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="/assets/css/seller.css" />
+  <script src="/assets/js/core/api.js"></script>
   <style>
     :root {
       --pink-main: #d985a7; --pink-dark: #b95f84; --pink-pastel: #f8dce7;
@@ -122,6 +124,7 @@
         <a href="index.html">Trang chủ</a>
         <a href="shop.html">🏪 Cửa hàng & Sản phẩm</a>
         <a href="orders.html">📦 Đơn hàng</a>
+        <a href="chat.html">💬 Chat với Buyer</a>
         <a href="ticket.html" class="active">🎫 Ticket Admin</a>
       </nav>
     </div>
@@ -134,21 +137,101 @@
         <p style="color: var(--text-muted); font-size: 14px;">Gửi yêu cầu hỗ trợ, khiếu nại hoặc báo lỗi hệ thống.</p>
       </div>
 
-      <form onsubmit="event.preventDefault(); alert('Gửi Ticket hỗ trợ thành công!'); this.reset();">
+      <form id="ticketForm">
         <div class="form-group">
           <label>Chủ đề hỗ trợ</label>
-          <input type="text" placeholder="Nhập chủ đề..." required>
+          <input id="ticketSubject" type="text" maxlength="120" placeholder="Nhập chủ đề..." required>
         </div>
         <div class="form-group">
           <label>Nội dung chi tiết</label>
-          <textarea rows="5" placeholder="Mô tả vấn đề của bạn..." required></textarea>
+          <textarea id="ticketContent" rows="5" maxlength="4000" placeholder="Mô tả vấn đề của bạn..." required></textarea>
         </div>
         <button type="submit" class="btn btn-primary">🚀 Gửi Yêu Cầu Hỗ Trợ</button>
       </form>
+      <p id="ticketStatus" aria-live="polite"></p>
+      <div id="ticketList" style="margin-top:24px"></div>
     </div>
   </main>
 
   <script>
+    const ticketStatus = document.getElementById("ticketStatus");
+
+    async function loadTickets() {
+      try {
+        const { items } = await api("/tickets");
+        const list = document.getElementById("ticketList");
+        list.replaceChildren();
+        const heading = document.createElement("h3");
+        heading.textContent = "Yêu cầu đã gửi";
+        list.appendChild(heading);
+        if (!items.length) {
+          const empty = document.createElement("p");
+          empty.textContent = "Bạn chưa gửi yêu cầu nào.";
+          list.appendChild(empty);
+        }
+        items.forEach((ticket) => {
+          const card = document.createElement("article");
+          card.style.cssText = "border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;background:white";
+          const title = document.createElement("strong");
+          title.textContent = ticket.subject;
+          const content = document.createElement("p");
+          content.textContent = ticket.content;
+          card.append(title, content);
+          (ticket.replies || []).forEach((reply) => {
+            const response = document.createElement("p");
+            response.style.cssText = "padding:8px;margin-top:8px;background:var(--pink-pale);border-radius:8px";
+            response.textContent = `${reply.user_name}: ${reply.content}`;
+            card.appendChild(response);
+          });
+          const replyRow = document.createElement("div");
+          replyRow.style.cssText = "display:flex;gap:8px;margin-top:10px";
+          const input = document.createElement("input");
+          input.maxLength = 4000;
+          input.placeholder = "Trả lời Admin...";
+          input.style.cssText = "flex:1;min-width:0;padding:8px;border:1px solid var(--border);border-radius:8px";
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "btn btn-primary";
+          button.textContent = "Gửi";
+          button.addEventListener("click", async () => {
+            const contentText = input.value.trim();
+            if (!contentText) return;
+            try {
+              await api(`/tickets/${ticket.id}/reply`, { method: "POST", body: { content: contentText } });
+              await loadTickets();
+            } catch (error) {
+              ticketStatus.textContent = error.message;
+            }
+          });
+          replyRow.append(input, button);
+          card.appendChild(replyRow);
+          list.appendChild(card);
+        });
+        ticketStatus.textContent = "";
+      } catch (error) {
+        ticketStatus.textContent = error.message;
+      }
+    }
+
+    document.getElementById("ticketForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const subject = document.getElementById("ticketSubject").value.trim();
+      const content = document.getElementById("ticketContent").value.trim();
+      try {
+        await api("/tickets", { method: "POST", body: { subject, content } });
+        event.target.reset();
+        ticketStatus.textContent = "Đã gửi yêu cầu hỗ trợ.";
+        await loadTickets();
+      } catch (error) {
+        ticketStatus.textContent = error.message;
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (!requireRole("seller")) return;
+      await loadTickets();
+    });
+
     function toggleUserDropdown(e) {
       if(e) e.stopPropagation();
       document.getElementById("userDropdown").classList.toggle("show");
