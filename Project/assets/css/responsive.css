@@ -1,0 +1,185 @@
+select.lang-select,
+select#siteLanguage {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid #efd5e0 !important;
+  border-radius: 10px !important;
+  background-color: #fff !important;
+  color: #4a3b43;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+select.lang-select:focus,
+select#siteLanguage:focus {
+  outline: 2px solid rgba(217, 133, 167, 0.3);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-height: 100vh;
+    height: auto !important;
+    overflow-y: auto !important;
+  }
+
+  header {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    flex-wrap: wrap;
+  }
+
+  header .header-top {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  header .logo-container {
+    min-width: 0;
+  }
+
+  header .search-container {
+    order: 3;
+    flex: 1 0 100%;
+    max-width: none;
+  }
+
+  header .header-actions {
+    gap: 8px;
+  }
+
+  header .header-bottom {
+    overflow-x: auto;
+  }
+
+  header nav {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  header nav a,
+  header nav button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 9px 12px;
+    font-size: 14px;
+  }
+
+  main {
+    width: 100%;
+    max-width: 100%;
+    margin: 18px auto !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .panel,
+  .modal-content {
+    padding: 16px;
+  }
+
+  .shop-layout,
+  .tryon-layout,
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .field-row,
+  .section-head,
+  .order-foot {
+    flex-wrap: wrap;
+  }
+
+  .field-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .toolbar,
+  .order-actions {
+    flex-wrap: wrap;
+  }
+
+  .toolbar select,
+  .toolbar .btn,
+  .order-actions .btn {
+    max-width: 100%;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .variant-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .chat-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .chat-input {
+    flex-wrap: wrap;
+  }
+
+  .chat-input input {
+    min-width: 0;
+  }
+
+  .chart-box {
+    max-width: 100%;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .tab {
+    flex: 0 0 auto;
+  }
+
+  .floating-ai-btn,
+  .ai-fab {
+    right: 12px;
+    bottom: 12px;
+    max-width: calc(100vw - 24px);
+  }
+}
+
+@media (max-width: 420px) {
+  .product-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  header .logo-container img {
+    width: 34px;
+    height: 34px;
+  }
+
+  header .logo {
+    font-size: 18px;
+  }
+
+  .stat-row,
+  .kpi-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .modal-content {
+    width: calc(100% - 16px);
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+}

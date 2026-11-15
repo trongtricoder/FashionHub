@@ -79,6 +79,8 @@
     .btn-primary { background: var(--pink-main); color: white; }
     .btn-primary:hover { background: var(--pink-dark); }
   </style>
+  <script defer src="/assets/js/core/language.js"></script>
+  <link rel="stylesheet" href="/assets/css/responsive.css">
 </head>
 <body>
 
@@ -96,9 +98,9 @@
       </div>
 
       <div class="header-actions">
-        <select class="lang-select">
-          <option>Tiếng Việt ∨</option>
-          <option>English ∨</option>
+        <select class="lang-select" aria-label="Language" onchange="setSiteLanguage(this.value)">
+          <option value="vi">Tiếng Việt</option>
+          <option value="en">English</option>
         </select>
         <button class="icon-btn">🔔 <span class="notif-badge">2</span></button>
         <div class="avatar-btn" onclick="toggleUserDropdown(event)">SH</div>
@@ -238,5 +240,9 @@
     }
     window.onclick = function() { document.getElementById("userDropdown").classList.remove('show'); }
   </script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

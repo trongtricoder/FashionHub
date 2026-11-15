@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seller Pro - Cửa Hàng & Sản Phẩm</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="/assets/css/seller.css" />
   <script src="/assets/js/core/api.js"></script>
   <script src="/assets/js/seller/common.js"></script>
@@ -79,6 +77,8 @@
     .btn-primary { background: var(--pink-main); color: white; }
     .btn-primary:hover { background: var(--pink-dark); }
   </style>
+  <script defer src="/assets/js/core/language.js"></script>
+  <link rel="stylesheet" href="/assets/css/responsive.css">
 </head>
 <body>
 
@@ -96,9 +96,9 @@
       </div>
 
       <div class="header-actions">
-        <select class="lang-select">
-          <option>Tiếng Việt ∨</option>
-          <option>English ∨</option>
+        <select class="lang-select" aria-label="Language" onchange="setSiteLanguage(this.value)">
+          <option value="vi">Tiếng Việt</option>
+          <option value="en">English</option>
         </select>
         <button class="icon-btn">🔔 <span class="notif-badge">2</span></button>
         <div class="avatar-btn" id="avatarBtn" onclick="toggleUserDropdown(event)">SH</div>
@@ -149,8 +149,7 @@
             <div class="field"><label for="shopLat">Vĩ độ</label><input id="shopLat" type="number" step="any"></div>
             <div class="field"><label for="shopLng">Kinh độ</label><input id="shopLng" type="number" step="any"></div>
           </div>
-          <div id="shopMap" style="width: 100%; height: 220px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 6px;"></div>
-          <small id="shopMapNote" style="display: block; color: var(--text-muted); margin-bottom: 14px;">Bấm lên bản đồ để chọn vị trí cửa hàng.</small>
+          <small style="display: block; color: var(--text-muted); margin-bottom: 14px;">Tọa độ giúp hệ thống ước tính khoảng cách giao hàng.</small>
           <button class="btn btn-primary" id="saveShopBtn" style="width: 100%;">Lưu thông tin shop</button>
         </div>
 
@@ -190,8 +189,6 @@
 
     // ===== Patch 05: quản lý shop và danh sách sản phẩm thật =====
     let myShop = null, currentMe = null;
-    let map = null, marker = null;
-
     // ----- Thông tin shop -----
     function fillShop(shop) {
       myShop = shop;
@@ -210,30 +207,6 @@
       } else {
         document.getElementById("shopNote").innerHTML = "";
       }
-      placeMarker(shop.lat, shop.lng, false);
-    }
-
-    function initMap() {
-      const note = document.getElementById("shopMapNote");
-      if (typeof L === "undefined") {   // không tải được thư viện bản đồ: vẫn nhập tay vĩ độ, kinh độ được
-        document.getElementById("shopMap").style.display = "none";
-        note.innerText = "Không tải được bản đồ. Bạn vẫn có thể nhập vĩ độ và kinh độ bằng tay.";
-        return;
-      }
-      map = L.map("shopMap").setView([10.7769, 106.7009], 12);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
-      map.on("click", e => {
-        document.getElementById("shopLat").value = e.latlng.lat.toFixed(6);
-        document.getElementById("shopLng").value = e.latlng.lng.toFixed(6);
-        placeMarker(e.latlng.lat, e.latlng.lng, false);
-      });
-    }
-
-    function placeMarker(lat, lng, recenter) {
-      if (!map || lat == null || lng == null || lat === "" || lng === "") return;
-      if (marker) marker.setLatLng([lat, lng]); else marker = L.marker([lat, lng]).addTo(map);
-      if (recenter !== false) map.setView([lat, lng], 14);
-      else if (map.getZoom() < 13) map.setView([lat, lng], 14);
     }
 
     async function saveShop() {
@@ -314,16 +287,11 @@
     document.getElementById("addProductBtn").addEventListener("click", () => { window.location.href = "product-edit.html"; });
     document.getElementById("statusFilter").addEventListener("change", loadProducts);
     document.getElementById("saveShopBtn").addEventListener("click", saveShop);
-    ["shopLat", "shopLng"].forEach(id => document.getElementById(id).addEventListener("change", () => {
-      placeMarker(document.getElementById("shopLat").value, document.getElementById("shopLng").value);
-    }));
-
     document.addEventListener("DOMContentLoaded", async function() {
       const me = requireRole("seller");   // chưa đăng nhập hoặc sai vai trò thì về trang đăng nhập
       if (!me) return;
       currentMe = me;
       fillSellerHeader(me, null);
-      initMap();
       try {
         fillShop(await api("/seller/shop"));
       } catch (err) {
@@ -332,5 +300,9 @@
       await Promise.all([loadStats(), loadProducts()]);
     });
   </script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

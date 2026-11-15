@@ -10,14 +10,15 @@
             theme: { extend: { colors: { pastel: '#F8DCE7', main: '#D985A7', light: '#FFF7FA', darkmodal: '#333333' } } }
         }
     </script>
+    <script defer src="/assets/js/core/language.js"></script>
+    <link rel="stylesheet" href="/assets/css/responsive.css">
 </head>
 <body class="bg-light h-screen flex items-center justify-center p-4 relative overflow-hidden">
 
-    <!-- Nút chuyển đổi ngôn ngữ (VN / EN) -->
-    <div class="absolute top-6 right-8 flex bg-white rounded-full shadow-md overflow-hidden border border-gray-100 z-10">
-        <button id="btn-vi" class="px-4 py-2 text-sm font-bold bg-pastel text-main transition">VN</button>
-        <button id="btn-en" class="px-4 py-2 text-sm font-bold text-gray-400 hover:text-main transition">EN</button>
-    </div>
+    <select class="lang-select absolute top-6 right-8 z-10" aria-label="Language" onchange="setLang(this.value)">
+        <option value="vi">Tiếng Việt</option>
+        <option value="en">English</option>
+    </select>
 
     <!-- Nút quay lại trang chủ -->
     <a href="Home.html" class="absolute top-6 left-8 px-4 py-2 text-sm font-bold text-gray-500 hover:text-main bg-white rounded-full shadow-md transition flex items-center gap-1">
@@ -154,16 +155,8 @@
 
         function setLang(lang) {
             currentLang = lang;
+            if (window.setSiteLanguage) setSiteLanguage(lang);
             
-            // Đổi giao diện active nút ngôn ngữ
-            if (lang === 'vi') {
-                document.getElementById('btn-vi').className = "px-4 py-2 text-sm font-bold bg-pastel text-main transition";
-                document.getElementById('btn-en').className = "px-4 py-2 text-sm font-bold text-gray-400 hover:text-main transition";
-            } else {
-                document.getElementById('btn-en').className = "px-4 py-2 text-sm font-bold bg-pastel text-main transition";
-                document.getElementById('btn-vi').className = "px-4 py-2 text-sm font-bold text-gray-400 hover:text-main transition";
-            }
-
             // Dịch toàn bộ các thẻ có thuộc tính data-i18n
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
@@ -182,10 +175,6 @@
 
             updateSubmitBtnText();
         }
-
-        // Gắn sự kiện click đổi ngôn ngữ trực tiếp qua JS
-        document.getElementById('btn-vi').addEventListener('click', () => setLang('vi'));
-        document.getElementById('btn-en').addEventListener('click', () => setLang('en'));
 
         // --- 2. LOGIC TABS ĐĂNG NHẬP / ĐĂNG KÝ ---
         let isLogin = true;
@@ -284,14 +273,30 @@
 
         document.getElementById('admin-btn-cancel').addEventListener('click', closeAdminModal);
 
-        function submitAdminPass() {
-            if (adminPassInput.value === 'admin') {
+        async function submitAdminPass() {
+            const submitButton = document.getElementById('admin-btn-submit');
+            submitButton.disabled = true;
+            try {
+                const session = await api('/auth/login', {
+                    method: 'POST',
+                    auth: false,
+                    body: { identifier: 'admin', password: adminPassInput.value }
+                });
+                if (session.me.role !== 'admin') {
+                    throw new Error(currentLang === 'en'
+                        ? 'This account does not have Admin access.'
+                        : 'Tài khoản này không có quyền Admin.');
+                }
+                saveSession(session);
                 window.location.href = 'Admin.html';
-            } else {
+            } catch (err) {
                 closeAdminModal();
                 setTimeout(() => {
+                    document.getElementById('alert-message').textContent = err.message;
                     showAlertModal();
                 }, 250);
+            } finally {
+                submitButton.disabled = false;
             }
         }
 
@@ -317,7 +322,11 @@
         document.getElementById('alert-btn-ok').addEventListener('click', closeAlertModal);
 
         // Khởi tạo ngôn ngữ mặc định là Tiếng Việt khi tải trang
-        setLang('vi');
+        setLang(localStorage.getItem('fashionhub-language') === 'en' ? 'en' : 'vi');
     </script>
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

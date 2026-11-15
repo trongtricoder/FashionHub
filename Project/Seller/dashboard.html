@@ -133,6 +133,8 @@
     .form-group label { font-weight: bold; font-size: 13px; }
     .form-group input { border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; outline: none; }
   </style>
+  <script defer src="/assets/js/core/language.js"></script>
+  <link rel="stylesheet" href="/assets/css/responsive.css">
 </head>
 <body>
 
@@ -151,9 +153,9 @@
       </div>
 
       <div class="header-actions">
-        <select class="lang-select" id="langSelect" onchange="changeLanguage(this.value)">
-          <option value="vi">Tiếng Việt ∨</option>
-          <option value="en">English ∨</option>
+        <select class="lang-select" id="langSelect" onchange="setSiteLanguage(this.value)">
+          <option value="vi">Tiếng Việt</option>
+          <option value="en">English</option>
         </select>
 
         <button class="icon-btn" onclick="openModal('notificationsModal')">
@@ -244,7 +246,7 @@
       <div class="form-group"><label>Mật khẩu hiện tại</label><input type="password"></div>
       <div class="form-group"><label>Mật khẩu mới</label><input type="password"></div>
       <div class="form-group"><label>Xác nhận mật khẩu mới</label><input type="password"></div>
-      <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="alert('Đổi mật khẩu thành công!'); closeModal('changePasswordModal');">Cập nhật mật khẩu</button>
+      <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="alert(isEnglish() ? 'Password changed successfully!' : 'Đổi mật khẩu thành công!'); closeModal('changePasswordModal');">Cập nhật mật khẩu</button>
     </div>
   </div>
 
@@ -260,17 +262,28 @@
   <script>
     // ===== Patch 07: dashboard thật =====
     let chart = null;
+    let latestDashboard = null;
     let currentRange = "30d";
     let chatBusy = false;
+
+    function isEnglish() {
+      return window.getSiteLanguage ? getSiteLanguage() === "en" : localStorage.getItem("fashionhub-language") === "en";
+    }
 
     function fmtLabel(label, unit) {
       const p = label.split("-");
       return unit === "month" ? p[1] + "/" + p[0] : p[2] + "/" + p[1];
     }
     function shortMoney(v) {
-      if (v >= 1000000) return (v / 1000000).toLocaleString("vi-VN", { maximumFractionDigits: 1 }) + " tr";
-      if (v >= 1000) return (v / 1000).toLocaleString("vi-VN", { maximumFractionDigits: 0 }) + "k";
-      return v;
+      const english = isEnglish();
+      const locale = english ? "en-US" : "vi-VN";
+      if (v >= 1000000) return (v / 1000000).toLocaleString(locale, { maximumFractionDigits: 1 }) + (english ? "M" : " tr");
+      if (v >= 1000) return (v / 1000).toLocaleString(locale, { maximumFractionDigits: 0 }) + "k";
+      return Number(v).toLocaleString(locale);
+    }
+
+    function formatDashboardMoney(value) {
+      return Number(value).toLocaleString(isEnglish() ? "en-US" : "vi-VN") + (isEnglish() ? " VND" : " VNĐ");
     }
 
     function renderKpis(k) {
@@ -284,25 +297,33 @@
 
     function renderChart(d) {
       const note = document.getElementById("chartNote");
-      if (typeof Chart === "undefined") { note.innerText = "Không tải được thư viện biểu đồ. Kiểm tra kết nối mạng rồi tải lại trang."; return; }
+      const english = isEnglish();
+      if (typeof Chart === "undefined") {
+        note.innerText = english
+          ? "Could not load the chart library. Check your connection and reload the page."
+          : "Không tải được thư viện biểu đồ. Kiểm tra kết nối mạng rồi tải lại trang.";
+        return;
+      }
       if (chart) chart.destroy();
       const unit = d.range === "12m" ? "month" : "day";
       const fcLen = d.forecast ? d.forecast.labels.length : 0;
       const pad = arr => arr.concat(Array(fcLen).fill(null));
       const labels = d.labels.concat(d.forecast ? d.forecast.labels : []).map(l => fmtLabel(l, unit));
       const datasets = [
-        { label: "Doanh thu (VNĐ)", data: pad(d.revenue), borderColor: "#D985A7", backgroundColor: "rgba(217, 133, 167, 0.15)", fill: true, tension: 0.35, yAxisID: "y" },
-        { label: "Lượt xem", data: pad(d.views), borderColor: "#8a727d", tension: 0.35, yAxisID: "y1" }
+        { label: english ? "Revenue (VND)" : "Doanh thu (VNĐ)", data: pad(d.revenue), borderColor: "#D985A7", backgroundColor: "rgba(217, 133, 167, 0.15)", fill: true, tension: 0.35, yAxisID: "y" },
+        { label: english ? "Views" : "Lượt xem", data: pad(d.views), borderColor: "#8a727d", tension: 0.35, yAxisID: "y1" }
       ];
       if (d.forecast) {
         // nối từ điểm thật cuối cùng để đường dự đoán liền mạch với đường doanh thu
         const lastActual = d.revenue[d.revenue.length - 1];
-        datasets.push({ label: "Dự đoán doanh thu", data: Array(d.labels.length - 1).fill(null).concat([lastActual], d.forecast.revenue),
+        datasets.push({ label: english ? "Revenue forecast" : "Dự đoán doanh thu", data: Array(d.labels.length - 1).fill(null).concat([lastActual], d.forecast.revenue),
           borderColor: "#4a3b43", borderDash: [6, 6], pointRadius: 2, tension: 0.2, yAxisID: "y" });
         const total = d.forecast.revenue.reduce((a, b) => a + b, 0);
-        note.innerText = `Dự đoán doanh thu 7 ngày tới: khoảng ${money(total)} (tính từ xu hướng 30 ngày gần nhất và thói quen mua theo thứ trong tuần).`;
+        note.innerText = english
+          ? `Revenue forecast for the next 7 days: approximately ${formatDashboardMoney(total)} (based on the last 30 days and weekday shopping patterns).`
+          : `Dự đoán doanh thu 7 ngày tới: khoảng ${money(total)} (tính từ xu hướng 30 ngày gần nhất và thói quen mua theo thứ trong tuần).`;
       } else {
-        note.innerText = "Xem theo tháng không có dự đoán.";
+        note.innerText = english ? "No forecast is available for the monthly view." : "Xem theo tháng không có dự đoán.";
       }
       chart = new Chart(document.getElementById("mainChart"), {
         type: "line",
@@ -323,12 +344,17 @@
       try {
         const d = await api("/seller/dashboard?range=" + range);
         if (range !== currentRange) return;   // người dùng đã bấm sang khoảng khác trong lúc chờ
+          latestDashboard = d;
         renderKpis(d.kpi);
         renderChart(d);
       } catch (err) {
         handleError(err);
       }
     }
+
+    window.addEventListener("site-language-change", () => {
+      if (latestDashboard) renderChart(latestDashboard);
+    });
 
     // ----- Gợi ý của AI -----
     async function startAnalysis() {
@@ -387,7 +413,7 @@
     document.getElementById("chatInput").addEventListener("keydown", e => { if (e.key === "Enter") ask(e.target.value); });
     document.getElementById("chatChips").addEventListener("click", e => {
       const chip = e.target.closest(".chip");
-      if (chip) ask(chip.dataset.q);
+      if (chip) ask(chip.textContent.trim());
     });
 
     (async function init() {
@@ -416,9 +442,10 @@
       box.style.display = 'block';
       box.innerHTML = `<div class="suggestion-item">Kết quả tìm kiếm cho: "${escapeHtml(val)}"</div>`;
     }
-    function changeLanguage(lang) {
-      alert("Đã chuyển ngôn ngữ sang: " + lang.toUpperCase());
-    }
   </script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

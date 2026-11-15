@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seller Pro - Quản Lý Đơn Hàng</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="/assets/js/core/api.js"></script>
   <style>
@@ -105,6 +103,8 @@
     .seller-toast { position: fixed; bottom: 24px; right: 24px; background: var(--text-dark); color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 14px; max-width: 360px; opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 999; }
     .seller-toast.show { opacity: 1; }
   </style>
+  <script defer src="/assets/js/core/language.js"></script>
+  <link rel="stylesheet" href="/assets/css/responsive.css">
 </head>
 <body>
 
@@ -122,9 +122,9 @@
       </div>
 
       <div class="header-actions">
-        <select class="lang-select">
-          <option>Tiếng Việt ∨</option>
-          <option>English ∨</option>
+        <select class="lang-select" aria-label="Language" onchange="setSiteLanguage(this.value)">
+          <option value="vi">Tiếng Việt</option>
+          <option value="en">English</option>
         </select>
         <button class="icon-btn">🔔 <span class="notif-badge">2</span></button>
         <div class="avatar-btn" id="avatarBtn" onclick="toggleUserDropdown(event)">SH</div>
@@ -174,11 +174,6 @@
       <div id="orderList"></div>
     </div>
 
-    <div class="panel">
-      <h3 style="margin-bottom: 12px; font-size: 16px;"><i class="fa-solid fa-map-location-dot text-brand-main"></i> Bản Đồ Giao Hàng & Định Vị Cự Ly</h3>
-      <p id="mapNote" class="order-meta" style="margin-bottom: 10px;">Bấm "Xem bản đồ" ở một đơn hàng để xem vị trí cửa hàng và nơi giao.</p>
-      <div id="map" style="width: 100%; height: 350px; border-radius: 12px; border: 1px solid var(--border);"></div>
-    </div>
   </main>
 
   <div class="seller-toast" id="sellerToast"></div>
@@ -210,10 +205,12 @@
     let currentTab = "pending";
     let currentOrders = [];
     let myShop = null;
-    let map = null, mapLayer = null;
     let busy = false;
 
-    function money(n) { return Number(n).toLocaleString("vi-VN") + " VNĐ"; }
+    function money(n) {
+      const english = window.getSiteLanguage ? getSiteLanguage() === "en" : localStorage.getItem("fashionhub-language") === "en";
+      return Number(n).toLocaleString(english ? "en-US" : "vi-VN") + (english ? " VND" : " VNĐ");
+    }
     function timeText(iso) {
       return new Date(iso).toLocaleString("vi-VN", {
         timeZone: "Asia/Ho_Chi_Minh", hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric"
@@ -306,7 +303,6 @@
           <div class="order-foot">
             <b>Tổng: ${money(o.total)}</b>
             <div class="order-actions">
-              <button class="btn btn-ghost" data-act="map" data-id="${o.id}">📍 Xem bản đồ</button>
               ${actions}
             </div>
           </div>
@@ -324,51 +320,19 @@
 
     async function changeStatus(orderId, to, ask) {
       if (busy) return;
-      if (ask && !window.confirm(ask)) return;
+      if (ask && !window.confirm(window.translateSiteText ? translateSiteText(ask) : ask)) return;
       busy = true;
       document.querySelectorAll("#orderList button").forEach(b => b.disabled = true);
       try {
         await api(`/seller/orders/${orderId}/status`, { method: "PATCH", body: { status: to } });
-        showToast(`Đơn #${orderId}: ${STATUS_LABEL[to].toLowerCase()}.`);
+        const english = window.getSiteLanguage ? getSiteLanguage() === "en" : localStorage.getItem("fashionhub-language") === "en";
+        const statusLabel = window.translateSiteText ? translateSiteText(STATUS_LABEL[to]) : STATUS_LABEL[to];
+        showToast(`${english ? "Order" : "Đơn"} #${orderId}: ${statusLabel.toLowerCase()}.`);
       } catch (err) {
         handleError(err);
       }
       busy = false;
       await Promise.all([loadStats(), loadOrders()]);
-    }
-
-    function ensureMap() {
-      if (typeof L === "undefined") return false;   // thư viện bản đồ chưa tải được (mất mạng)
-      if (!map) {
-        map = L.map("map").setView([10.7769, 106.7009], 12);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
-        mapLayer = L.layerGroup().addTo(map);
-      }
-      return true;
-    }
-
-    function showMap(order) {
-      const note = document.getElementById("mapNote");
-      if (!ensureMap()) {
-        note.innerText = "Không tải được thư viện bản đồ. Kiểm tra kết nối mạng rồi tải lại trang.";
-        return;
-      }
-      mapLayer.clearLayers();
-      const shop = myShop && myShop.lat != null ? [myShop.lat, myShop.lng] : null;
-      const dest = order && order.lat != null ? [order.lat, order.lng] : null;
-      const points = [];
-      if (shop) { L.marker(shop).addTo(mapLayer).bindPopup("Cửa hàng"); points.push(shop); }
-      if (dest) { L.marker(dest).addTo(mapLayer).bindPopup("Khách hàng: " + escapeHtml(order.receiver_name)); points.push(dest); }
-      if (shop && dest) L.polyline([shop, dest], { color: "#D985A7", weight: 4 }).addTo(mapLayer);
-
-      if (order) {
-        note.innerText = dest
-          ? `Đơn #${order.id}: cách shop khoảng ${order.distance_km} km (ước tính theo đường đi).`
-          : `Đơn #${order.id} chưa có vị trí giao vì người mua không chia sẻ vị trí khi đặt hàng.`;
-      }
-      if (points.length === 2) map.fitBounds(points, { padding: [40, 40] });
-      else if (points.length === 1) map.setView(points[0], 14);
-      if (order) document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     // Một chỗ bắt mọi cú bấm trong danh sách đơn (dữ liệu nằm trong data-*, không nhúng vào onclick)
@@ -377,7 +341,6 @@
       if (!btn) return;
       if (btn.dataset.act === "retry") loadOrders();
       if (btn.dataset.act === "status") changeStatus(Number(btn.dataset.id), btn.dataset.to, btn.dataset.ask);
-      if (btn.dataset.act === "map") showMap(currentOrders.find(o => o.id === Number(btn.dataset.id)));
     });
 
     document.getElementById("tabs").addEventListener("click", e => {
@@ -401,9 +364,12 @@
       } catch (err) {
         handleError(err);
       }
-      showMap(null);
       await Promise.all([loadStats(), loadOrders()]);
     });
   </script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

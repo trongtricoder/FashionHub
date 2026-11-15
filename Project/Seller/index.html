@@ -133,6 +133,8 @@
     .form-group label { font-weight: bold; font-size: 13px; }
     .form-group input { border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; outline: none; }
   </style>
+  <script defer src="/assets/js/core/language.js"></script>
+  <link rel="stylesheet" href="/assets/css/responsive.css">
 </head>
 <body>
 
@@ -151,9 +153,9 @@
       </div>
 
       <div class="header-actions">
-        <select class="lang-select" id="langSelect" onchange="changeLanguage(this.value)">
-          <option value="vi">Tiếng Việt ∨</option>
-          <option value="en">English ∨</option>
+        <select class="lang-select" id="langSelect" onchange="setSiteLanguage(this.value)">
+          <option value="vi">Tiếng Việt</option>
+          <option value="en">English</option>
         </select>
 
         <button class="icon-btn" onclick="openModal('notificationsModal')">
@@ -220,7 +222,7 @@
       <div class="form-group"><label>Mật khẩu hiện tại</label><input type="password"></div>
       <div class="form-group"><label>Mật khẩu mới</label><input type="password"></div>
       <div class="form-group"><label>Xác nhận mật khẩu mới</label><input type="password"></div>
-      <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="alert('Đổi mật khẩu thành công!'); closeModal('changePasswordModal');">Cập nhật mật khẩu</button>
+      <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="alert(isEnglish() ? 'Password changed successfully!' : 'Đổi mật khẩu thành công!'); closeModal('changePasswordModal');">Cập nhật mật khẩu</button>
     </div>
   </div>
 
@@ -235,25 +237,41 @@
 
   <script>
     // ===== Patch 07: biểu đồ doanh thu 7 ngày lấy từ server =====
+    let weeklyChart = null;
+    let weeklyDashboard = null;
+
+    function isEnglish() {
+      return window.getSiteLanguage ? getSiteLanguage() === 'en' : localStorage.getItem('fashionhub-language') === 'en';
+    }
+
+    function renderWeeklyChart(d) {
+      if (weeklyChart) weeklyChart.destroy();
+      weeklyChart = new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+          labels: d.labels.map(l => l.slice(8) + '/' + l.slice(5, 7)),
+          datasets: [{
+            label: isEnglish() ? 'Revenue (VND)' : 'Doanh thu (VNĐ)', data: d.revenue,
+            borderColor: '#D985A7', backgroundColor: 'rgba(217, 133, 167, 0.15)', borderWidth: 3, tension: 0.4, fill: true
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
     async function loadWeeklyChart() {
       if (typeof Chart === "undefined") return;   // không tải được thư viện biểu đồ thì bỏ qua, trang vẫn dùng được
       try {
-        const d = await api('/seller/dashboard?range=7d');
-        new Chart(document.getElementById('revenueChart'), {
-          type: 'line',
-          data: {
-            labels: d.labels.map(l => l.slice(8) + '/' + l.slice(5, 7)),
-            datasets: [{
-              label: 'Doanh thu (VNĐ)', data: d.revenue,
-              borderColor: '#D985A7', backgroundColor: 'rgba(217, 133, 167, 0.15)', borderWidth: 3, tension: 0.4, fill: true
-            }]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-        });
+        weeklyDashboard = await api('/seller/dashboard?range=7d');
+        renderWeeklyChart(weeklyDashboard);
       } catch (err) {
         handleError(err);
       }
     }
+
+    window.addEventListener('site-language-change', () => {
+      if (weeklyDashboard && typeof Chart !== "undefined") renderWeeklyChart(weeklyDashboard);
+    });
 
     (function init() {
       const me = requireRole('seller');   // chưa đăng nhập hoặc sai vai trò thì về trang đăng nhập
@@ -281,9 +299,10 @@
       box.style.display = 'block';
       box.innerHTML = `<div class="suggestion-item">Kết quả tìm kiếm cho: "${escapeHtml(val)}"</div>`;
     }
-    function changeLanguage(lang) {
-      alert("Đã chuyển ngôn ngữ sang: " + lang.toUpperCase());
-    }
   </script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

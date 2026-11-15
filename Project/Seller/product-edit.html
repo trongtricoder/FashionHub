@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seller Pro - Sản Phẩm</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="/assets/css/seller.css" />
   <script src="/assets/js/core/api.js"></script>
   <script src="/assets/js/seller/common.js"></script>
@@ -79,6 +77,8 @@
     .btn-primary { background: var(--pink-main); color: white; }
     .btn-primary:hover { background: var(--pink-dark); }
   </style>
+  <script defer src="/assets/js/core/language.js"></script>
+  <link rel="stylesheet" href="/assets/css/responsive.css">
 </head>
 <body>
 
@@ -96,9 +96,9 @@
       </div>
 
       <div class="header-actions">
-        <select class="lang-select">
-          <option>Tiếng Việt ∨</option>
-          <option>English ∨</option>
+        <select class="lang-select" aria-label="Language" onchange="setSiteLanguage(this.value)">
+          <option value="vi">Tiếng Việt</option>
+          <option value="en">English</option>
         </select>
         <button class="icon-btn">🔔 <span class="notif-badge">2</span></button>
         <div class="avatar-btn" id="avatarBtn" onclick="toggleUserDropdown(event)">SH</div>
@@ -360,7 +360,8 @@
 
     async function deleteProduct() {
       if (busy || !productId) return;
-      if (!window.confirm("Xóa sản phẩm này? Sản phẩm đã có đơn hàng sẽ được ẩn thay vì xóa hẳn.")) return;
+      const confirmation = "Xóa sản phẩm này? Sản phẩm đã có đơn hàng sẽ được ẩn thay vì xóa hẳn.";
+      if (!window.confirm(window.translateSiteText ? translateSiteText(confirmation) : confirmation)) return;
       setBusy(true);
       try {
         const data = await api("/seller/products/" + productId, { method: "DELETE" });
@@ -426,5 +427,9 @@
       }
     });
   </script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

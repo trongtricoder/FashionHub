@@ -9,7 +9,8 @@ const STATUS_LABEL = {
 };
 
 function money(n) {
-  return Number(n).toLocaleString("vi-VN") + " VNĐ";
+  const english = window.getSiteLanguage ? getSiteLanguage() === "en" : localStorage.getItem("fashionhub-language") === "en";
+  return Number(n).toLocaleString(english ? "en-US" : "vi-VN") + (english ? " VND" : " VNĐ");
 }
 
 let toastTimer = null;

@@ -52,6 +52,8 @@
             background-color: #fbcfe8; /* pink-200 */
         }
     </style>
+    <script defer src="/assets/js/core/language.js"></script>
+    <link rel="stylesheet" href="/assets/css/responsive.css">
 </head>
 <body class="bg-light font-sans text-gray-800 h-screen flex flex-col overflow-hidden">
 
@@ -64,6 +66,10 @@
                 <h1 class="text-2xl font-black text-main tracking-widest leading-none">FASHION</h1>
                 <span class="text-xs text-gray-400 font-bold tracking-[0.2em]">ADMIN DASHBOARD</span>
             </div>
+            <select id="siteLanguage" class="rounded-lg border border-gray-200 px-2 py-2 text-sm" aria-label="Language" onchange="setSiteLanguage(this.value)">
+                <option value="vi">Tiếng Việt</option>
+                <option value="en">English</option>
+            </select>
         </div>
         <nav class="flex gap-4">
             <button onclick="switchView('home')" id="nav-home" class="px-6 py-2 rounded-xl nav-active transition">Home</button>
@@ -357,7 +363,10 @@
                 timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
             });
         }
-        function moneyText(n) { return Number(n).toLocaleString('vi-VN') + ' VNĐ'; }
+        function moneyText(n) {
+            const english = document.documentElement.lang === 'en';
+            return Number(n).toLocaleString(english ? 'en-US' : 'vi-VN') + (english ? ' VND' : ' VNĐ');
+        }
         function badge(text, cls) { return `<span class="${cls} px-3 py-1 rounded-full text-xs font-bold">${escapeHtml(text)}</span>`; }
         function stateRow(cols, html) { return `<tr><td colspan="${cols}" class="text-center py-8 text-gray-500">${html}</td></tr>`; }
 
@@ -441,9 +450,16 @@
 
         async function userAction(act, id, name, status) {
             if (busy) return;
-            if (act === 'reset' && !window.confirm(`Đặt lại mật khẩu của "${name}"? Người dùng sẽ phải đổi mật khẩu ở lần đăng nhập sau.`)) return;
-            if (act === 'delete' && !window.confirm(`Xóa vĩnh viễn tài khoản "${name}"? Không thể hoàn tác.`)) return;
-            if (act === 'status' && status === 'banned' && !window.confirm(`Khóa tài khoản "${name}"?`)) return;
+            const english = document.documentElement.lang === 'en';
+            if (act === 'reset' && !window.confirm(english
+                ? `Reset the password for "${name}"? The user will need to change it at their next login.`
+                : `Đặt lại mật khẩu của "${name}"? Người dùng sẽ phải đổi mật khẩu ở lần đăng nhập sau.`)) return;
+            if (act === 'delete' && !window.confirm(english
+                ? `Permanently delete the account "${name}"? This cannot be undone.`
+                : `Xóa vĩnh viễn tài khoản "${name}"? Không thể hoàn tác.`)) return;
+            if (act === 'status' && status === 'banned' && !window.confirm(english
+                ? `Ban the account "${name}"?`
+                : `Khóa tài khoản "${name}"?`)) return;
             busy = true;
             try {
                 if (act === 'reset') {
@@ -632,7 +648,10 @@
 
         async function restoreLog(id) {
             if (busy) return;
-            if (!window.confirm('Khôi phục mục này về bình thường? (Sản phẩm, shop được hiển thị lại; tài khoản được mở khóa)')) return;
+            const confirmation = document.documentElement.lang === 'en'
+                ? 'Restore this item? Products and stores will be visible again, and accounts will be unbanned.'
+                : 'Khôi phục mục này về bình thường? (Sản phẩm, shop được hiển thị lại; tài khoản được mở khóa)';
+            if (!window.confirm(confirmation)) return;
             busy = true;
             try {
                 await api(`/admin/ai-blocked/${id}/restore`, { method: 'POST' });
@@ -820,5 +839,9 @@
             updateModBadge();
         }
     </script>
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

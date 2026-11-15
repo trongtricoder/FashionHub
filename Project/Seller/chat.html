@@ -69,6 +69,8 @@
       main { margin: 22px auto; padding: 0 12px; }
     }
   </style>
+  <script defer src="/assets/js/core/language.js"></script>
+  <link rel="stylesheet" href="/assets/css/responsive.css">
 </head>
 <body>
   <header>
@@ -78,6 +80,10 @@
         <div class="logo">SELLER PRO <span>MANAGEMENT SYSTEM</span></div>
       </a>
       <div class="header-actions">
+        <select class="lang-select" aria-label="Language" onchange="setSiteLanguage(this.value)">
+          <option value="vi">Tiếng Việt</option>
+          <option value="en">English</option>
+        </select>
         <button class="btn" onclick="signOut(event)">Đăng xuất</button>
       </div>
     </div>
@@ -142,7 +148,8 @@
         const name = document.createElement("strong");
         name.textContent = message.product.name;
         const price = document.createElement("small");
-        price.textContent = `${Number(message.product.price).toLocaleString("vi-VN")} VNĐ`;
+        const english = window.getSiteLanguage ? getSiteLanguage() === "en" : localStorage.getItem("fashionhub-language") === "en";
+        price.textContent = `${Number(message.product.price).toLocaleString(english ? "en-US" : "vi-VN")} ${english ? "VND" : "VNĐ"}`;
         details.append(name, price);
         card.appendChild(details);
         bubble.appendChild(card);
@@ -264,5 +271,9 @@
       }
     });
   </script>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
