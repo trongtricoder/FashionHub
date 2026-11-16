@@ -6,6 +6,7 @@
   <title>Seller Pro - Chat với Buyer</title>
   <link rel="stylesheet" href="/assets/css/seller.css">
   <script src="/assets/js/core/api.js"></script>
+  <script src="/assets/js/seller/common.js"></script>
   <style>
     :root {
       --pink-main: #d985a7; --pink-dark: #b95f84; --pink-pastel: #f8dce7;
@@ -27,6 +28,29 @@
     .logo-container img { width: 42px; height: 42px; object-fit: cover; border-radius: 50%; }
     .logo { color: var(--pink-dark); font-size: 22px; font-weight: 700; letter-spacing: 1px; }
     .logo span { display: block; color: var(--text-muted); font-size: 11px; font-weight: 400; }
+    .header-actions { display: flex; align-items: center; gap: 18px; position: relative; }
+    .lang-select { border: 0; background: transparent; font-size: 15px; font-weight: 700; }
+    .avatar-btn {
+      width: 46px; height: 46px; border: 2px solid var(--border); border-radius: 50%;
+      background: var(--pink-pastel); color: var(--pink-dark); font-size: 17px; font-weight: 700;
+    }
+    .user-dropdown {
+      position: absolute; top: 56px; right: 0; z-index: 20; display: none; flex-direction: column;
+      width: 260px; overflow: hidden; border: 1px solid var(--border); border-radius: 12px;
+      background: var(--white); box-shadow: 0 8px 24px rgba(0,0,0,.1);
+    }
+    .user-dropdown.show { display: flex; }
+    .user-dropdown-header { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--pink-pale); }
+    .dropdown-avatar {
+      width: 45px; height: 45px; display: grid; place-items: center; border-radius: 50%;
+      background: var(--pink-main); color: var(--white); font-weight: 700;
+    }
+    .dropdown-info h4 { font-size: 15px; }
+    .dropdown-info p { color: var(--text-muted); font-size: 12px; }
+    .dropdown-menu-list { list-style: none; padding: 6px 0; }
+    .dropdown-menu-list a { display: block; padding: 10px 18px; color: var(--text-dark); text-decoration: none; }
+    .dropdown-menu-list a:hover { background: var(--pink-pastel); color: var(--pink-dark); }
+    .dropdown-menu-list .logout-btn { color: var(--red); font-weight: 700; }
     .header-bottom { border-top: 1px dashed var(--border); padding-top: 10px; }
     nav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     nav a { padding: 9px 14px; color: var(--text-dark); border-radius: 10px; text-decoration: none; font-weight: 700; }
@@ -38,16 +62,26 @@
     .chat-shell { display: grid; grid-template-columns: 310px minmax(0, 1fr); min-height: 560px; background: var(--white); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(185,95,132,.08); }
     .chat-list { border-right: 1px solid var(--border); overflow-y: auto; }
     .chat-list h2, .chat-panel h2 { padding: 18px 20px; color: var(--pink-dark); font-size: 18px; }
-    .conversation { display: block; width: 100%; padding: 14px 16px; border: 0; border-top: 1px solid var(--pink-pale); background: var(--white); color: var(--text-dark); text-align: left; }
+    .conversation { display: flex; align-items: center; gap: 10px; width: 100%; padding: 14px 16px; border: 0; border-top: 1px solid var(--pink-pale); background: var(--white); color: var(--text-dark); text-align: left; }
     .conversation.active, .conversation:hover { background: var(--pink-pale); }
-    .conversation span { float: right; min-width: 22px; border-radius: 12px; background: var(--pink-main); color: var(--white); padding: 1px 7px; text-align: center; font-size: 12px; }
-    .conversation strong, .conversation small { display: block; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .conversation-copy { flex: 1; min-width: 0; }
+    .conversation strong, .conversation small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .conversation small { margin-top: 3px; color: var(--text-muted); font-size: 12px; }
+    .unread-badge { min-width: 22px; border-radius: 12px; background: var(--pink-main); color: var(--white); padding: 1px 7px; text-align: center; font-size: 12px; }
+    .conversation-avatar, .message-avatar {
+      display: grid; flex: 0 0 38px; width: 38px; height: 38px; place-items: center;
+      overflow: hidden; border-radius: 50%; background: var(--pink-pastel); color: var(--pink-dark);
+      font-size: 13px; font-weight: 700;
+    }
+    .conversation-avatar img, .message-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .chat-panel { display: flex; flex-direction: column; min-width: 0; }
     #chatLog { display: flex; flex: 1; flex-direction: column; overflow-y: auto; padding: 18px; background: #fffafd; }
     .chat-empty { margin: auto; max-width: 320px; color: var(--text-muted); text-align: center; }
     .chat-empty strong { display: block; margin-bottom: 4px; color: var(--text-dark); }
-    .message { width: fit-content; max-width: 78%; margin: 7px 0; padding: 10px 14px; border: 1px solid var(--border); border-radius: 14px 14px 14px 4px; background: var(--white); overflow-wrap: anywhere; }
+    .message-row { display: flex; align-items: flex-end; gap: 8px; width: fit-content; max-width: 88%; margin: 7px 0; }
+    .message-row.mine { align-self: flex-end; flex-direction: row-reverse; }
+    .message-avatar { flex-basis: 30px; width: 30px; height: 30px; font-size: 11px; }
+    .message { width: fit-content; max-width: calc(100% - 38px); padding: 10px 14px; border: 1px solid var(--border); border-radius: 14px 14px 14px 4px; background: var(--white); overflow-wrap: anywhere; }
     .message.mine { align-self: flex-end; border-color: var(--pink-main); border-radius: 14px 14px 4px 14px; background: var(--pink-main); color: var(--white); }
     .message-product { display: flex; align-items: center; gap: 9px; margin: -2px 0 8px; padding: 7px; border-radius: 9px; background: var(--pink-pale); }
     .message-product img { width: 48px; height: 48px; flex: 0 0 48px; border-radius: 8px; object-fit: cover; background: var(--pink-pastel); }
@@ -64,6 +98,8 @@
     #chatStatus { min-height: 24px; margin: 4px 0 10px; color: var(--text-muted); font-size: 14px; }
     @media (max-width: 760px) {
       header { padding: 14px 4%; }
+      .header-top { flex-wrap: wrap; }
+      .header-actions { gap: 10px; }
       .chat-shell { grid-template-columns: 1fr; }
       .chat-list { max-height: 210px; border-right: 0; border-bottom: 1px solid var(--border); }
       main { margin: 22px auto; padding: 0 12px; }
@@ -84,7 +120,22 @@
           <option value="vi">Tiếng Việt</option>
           <option value="en">English</option>
         </select>
-        <button class="btn" onclick="signOut(event)">Đăng xuất</button>
+        <button class="avatar-btn" onclick="toggleUserDropdown(event)" id="avatarBtn" aria-label="Tài khoản Seller">SH</button>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-dropdown-header">
+            <div class="dropdown-avatar" id="dropdownAvatar">SH</div>
+            <div class="dropdown-info">
+              <h4 id="shopNameHeader">My Fashion Store</h4>
+              <p id="sellerEmailHeader">seller@system.com</p>
+            </div>
+          </div>
+          <ul class="dropdown-menu-list">
+            <li><a href="shop.html">🏪 Cửa hàng của tôi</a></li>
+            <li><a href="orders.html">📦 Quản lý đơn hàng</a></li>
+            <li><a href="dashboard.html">📊 Thống kê &amp; AI</a></li>
+            <li><a href="#" class="logout-btn" onclick="signOut(event)">↪ Đăng xuất</a></li>
+          </ul>
+        </div>
       </div>
     </div>
     <div class="header-bottom">
@@ -92,6 +143,7 @@
         <a href="index.html">Trang chủ</a>
         <a href="shop.html">Cửa hàng</a>
         <a href="orders.html">Đơn hàng</a>
+        <a href="dashboard.html">Thống kê &amp; AI</a>
         <a href="chat.html" class="active">💬 Chat với Buyer</a>
         <a href="ticket.html">🎫 Ticket Admin</a>
       </nav>
@@ -125,16 +177,43 @@
   </main>
   <script>
     let activeUserId = null;
+    let activeConversation = null;
+    let myAvatarUrl = "";
+    let myDisplayName = "Seller";
     let lastMessageAt = null;
     let polling = false;
+
+    function createAvatar(name, url, className) {
+      const avatar = document.createElement("div");
+      avatar.className = className;
+      const initials = (name || "U").trim().split(/\s+/).slice(0, 2)
+        .map((part) => part.charAt(0)).join("").toUpperCase();
+      if (/^https?:\/\//i.test(url || "")) {
+        const image = document.createElement("img");
+        image.src = url;
+        image.alt = "";
+        image.loading = "lazy";
+        image.onerror = () => avatar.replaceChildren(document.createTextNode(initials));
+        avatar.appendChild(image);
+      } else {
+        avatar.textContent = initials;
+      }
+      return avatar;
+    }
 
     function setStatus(message) {
       document.getElementById("chatStatus").textContent = message || "";
     }
 
     function appendMessage(message) {
+      const mine = message.sender_id !== activeUserId;
+      const row = document.createElement("div");
+      row.className = `message-row ${mine ? "mine" : ""}`;
+      const senderName = mine ? myDisplayName : activeConversation.name;
+      const senderAvatar = mine ? myAvatarUrl : activeConversation.avatar_url;
+      row.appendChild(createAvatar(senderName, senderAvatar, "message-avatar"));
       const bubble = document.createElement("div");
-      bubble.className = `message ${message.sender_id === activeUserId ? "" : "mine"}`;
+      bubble.className = `message ${mine ? "mine" : ""}`;
       if (message.product) {
         const card = document.createElement("div");
         card.className = "message-product";
@@ -157,7 +236,8 @@
       const content = document.createElement("div");
       content.textContent = message.content;
       bubble.appendChild(content);
-      document.getElementById("chatLog").appendChild(bubble);
+      row.appendChild(bubble);
+      document.getElementById("chatLog").appendChild(row);
     }
 
     async function loadConversations() {
@@ -168,15 +248,20 @@
         const button = document.createElement("button");
         button.className = `conversation ${conversation.user_id === activeUserId ? "active" : ""}`;
         button.dataset.userId = conversation.user_id;
+        button.appendChild(createAvatar(conversation.name, conversation.avatar_url, "conversation-avatar"));
+        const copy = document.createElement("div");
+        copy.className = "conversation-copy";
         const name = document.createElement("strong");
         name.textContent = conversation.name;
         const preview = document.createElement("small");
         preview.textContent = conversation.last_product
           ? `Sản phẩm: ${conversation.last_product.name}`
           : conversation.last_message;
-        button.append(name, preview);
+        copy.append(name, preview);
+        button.appendChild(copy);
         if (conversation.unread) {
           const badge = document.createElement("span");
+          badge.className = "unread-badge";
           badge.textContent = String(conversation.unread);
           button.appendChild(badge);
         }
@@ -222,6 +307,7 @@
 
     async function selectConversation(conversation) {
       activeUserId = conversation.user_id;
+      activeConversation = conversation;
       lastMessageAt = null;
       document.getElementById("chatInput").disabled = false;
       document.getElementById("chatInput").placeholder = "Nhập tin nhắn cho Buyer...";
@@ -253,14 +339,23 @@
       }
     });
 
-    function signOut(event) {
-      event.preventDefault();
-      clearSession();
-      window.location.href = "/Signin.html";
+    function toggleUserDropdown(event) {
+      event.stopPropagation();
+      document.getElementById("userDropdown").classList.toggle("show");
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
-      if (!requireRole("seller")) return;
+      const me = requireRole("seller");
+      if (!me) return;
+      myDisplayName = me.full_name || me.username || me.email || "Seller";
+      fillSellerHeader(me, null);
+      api("/me").then((profile) => { myAvatarUrl = profile.avatar_url || ""; }).catch((error) => setStatus(error.message));
+      api("/seller/shop").then((shop) => fillSellerHeader(me, shop)).catch((error) => setStatus(error.message));
+      window.addEventListener("click", (event) => {
+        if (!event.target.closest(".header-actions")) {
+          document.getElementById("userDropdown").classList.remove("show");
+        }
+      });
       try {
         await loadConversations();
         window.setInterval(() => {

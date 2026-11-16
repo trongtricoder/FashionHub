@@ -189,11 +189,6 @@
           <small>JPG, PNG hoặc WEBP, mỗi ảnh tối đa 5 MB. Sản phẩm thiếu ảnh sẽ bị cộng điểm rủi ro khi kiểm duyệt.</small>
         </div>
 
-        <div class="field full">
-          <label>Ảnh lớp thử đồ (PNG nền trong, không bắt buộc)</label>
-          <div class="thumb-row" id="tryonRow"></div>
-          <input type="file" id="tryonInput" accept="image/png">
-        </div>
       </div>
 
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -220,7 +215,7 @@
     let productId = new URLSearchParams(window.location.search).get("id");
     let variants = [{ size: "", color: "", stock: 0 }];
     let images = [];          // [{ url, is_main }]
-    let tryonLayer = "";
+    let tryonLayer = ""; // Preserve existing overlay data while try-on is paused.
     let busy = false;
 
     function setBusy(value) {
@@ -253,14 +248,6 @@
         </div>`).join("");
     }
 
-    function renderTryon() {
-      document.getElementById("tryonRow").innerHTML = tryonLayer ? `
-        <div class="thumb">
-          <img src="${escapeHtml(tryonLayer)}" alt="Ảnh lớp thử đồ">
-          <button type="button" data-remove-tryon="1">Bỏ ảnh</button>
-        </div>` : "";
-    }
-
     function setPageMode() {
       document.getElementById("pageTitle").innerText = productId ? "Sửa sản phẩm" : "Thêm sản phẩm";
       document.getElementById("deleteBtn").style.display = productId ? "inline-block" : "none";
@@ -277,7 +264,7 @@
       variants = p.variants.length ? p.variants.map(v => ({ size: v.size, color: v.color, stock: v.stock })) : [{ size: "", color: "", stock: 0 }];
       images = p.images.map(i => ({ url: i.url, is_main: i.is_main }));
       tryonLayer = p.tryon_layer_url || "";
-      renderVariants(); renderImages(); renderTryon(); setPageMode();
+      renderVariants(); renderImages(); setPageMode();
     }
 
     function collectBody() {
@@ -319,17 +306,6 @@
       }
       setBusy(false);
       renderImages();
-    }
-
-    async function setTryon(file) {
-      setBusy(true);
-      try {
-        tryonLayer = await uploadOne(file);
-        renderTryon();
-      } catch (err) {
-        handleError(err);
-      }
-      setBusy(false);
     }
 
     // ----- Lưu, xóa -----
@@ -400,11 +376,7 @@
         renderImages();
       }
     });
-    document.getElementById("tryonRow").addEventListener("click", e => {
-      if (e.target.closest("[data-remove-tryon]")) { tryonLayer = ""; renderTryon(); }
-    });
     document.getElementById("imageInput").addEventListener("change", e => { addImages(e.target.files); e.target.value = ""; });
-    document.getElementById("tryonInput").addEventListener("change", e => { if (e.target.files[0]) setTryon(e.target.files[0]); e.target.value = ""; });
     document.getElementById("saveBtn").addEventListener("click", saveProduct);
     document.getElementById("deleteBtn").addEventListener("click", deleteProduct);
 
@@ -412,7 +384,7 @@
       const me = requireRole("seller");   // chưa đăng nhập hoặc sai vai trò thì về trang đăng nhập
       if (!me) return;
       fillSellerHeader(me, null);
-      renderShapes([]); renderVariants(); renderImages(); renderTryon(); setPageMode();
+      renderShapes([]); renderVariants(); renderImages(); setPageMode();
       try {
         fillSellerHeader(me, await api("/seller/shop"));
         if (productId) {

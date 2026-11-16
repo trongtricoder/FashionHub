@@ -77,6 +77,7 @@
             <button onclick="switchView('buyer-mgmt')" id="nav-buyer" class="px-6 py-2 rounded-xl nav-inactive transition">Buyer</button>
             <button onclick="switchView('seller-mgmt')" id="nav-seller" class="px-6 py-2 rounded-xl nav-inactive transition">Seller</button>
             <button onclick="switchView('mod')" id="nav-mod" class="px-6 py-2 rounded-xl nav-inactive transition">Duyệt <span id="mod-badge" class="hidden ml-1 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full"></span></button>
+            <button onclick="switchView('payments')" id="nav-payments" class="px-4 py-2 rounded-xl nav-inactive transition">Đối soát chuyển khoản</button>
             <a href="#" onclick="signOut(event)" class="px-4 py-2 ml-4 text-red-400 hover:text-red-600 font-bold transition">Đăng xuất</a>
         </nav>
     </header>
@@ -205,6 +206,7 @@
                         <option value="rejected">Đã từ chối</option>
                     </select>
                     <button onclick="loadModeration()" class="bg-pastel text-main font-bold px-4 py-2 rounded-lg hover:bg-[#f1c5d6] transition text-sm">Làm mới</button>
+                    <button onclick="switchView('products')" class="bg-white border border-pastel text-main font-bold px-4 py-2 rounded-lg hover:bg-light transition text-sm">Tất cả sản phẩm</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-sm">
@@ -221,6 +223,47 @@
                         </thead>
                         <tbody id="mod-table-body"></tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-products" class="max-w-6xl mx-auto space-y-6 hidden">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-1">Tất cả sản phẩm</h2>
+                <p class="text-gray-500">Xem mọi sản phẩm và khóa sản phẩm đã duyệt nếu cần. Khóa không xóa dữ liệu.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex flex-wrap gap-3 mb-6 items-center">
+                    <input id="admin-product-search" type="search" placeholder="Tìm theo tên hoặc mô tả sản phẩm..." class="flex-1 min-w-[220px] px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pastel">
+                    <select id="admin-product-status" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pastel text-gray-700 bg-white">
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="approved">Đã duyệt</option>
+                        <option value="pending">Đang chờ duyệt</option>
+                        <option value="blocked">Đã chặn</option>
+                        <option value="rejected">Đã từ chối</option>
+                    </select>
+                    <button onclick="loadAdminProducts()" class="bg-pastel text-main font-bold px-4 py-2 rounded-lg hover:bg-[#f1c5d6] transition text-sm">Làm mới</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-pastel text-main">
+                                <th class="p-3">Mã</th>
+                                <th class="p-3">Ảnh</th>
+                                <th class="p-3">Sản phẩm</th>
+                                <th class="p-3">Shop</th>
+                                <th class="p-3">Giá</th>
+                                <th class="p-3">Trạng thái</th>
+                                <th class="p-3 text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-product-body"></tbody>
+                    </table>
+                </div>
+                <div class="flex justify-between items-center gap-3 mt-4">
+                    <button id="admin-product-prev" class="btn-action" disabled>Trước</button>
+                    <span id="admin-product-page" class="text-sm text-gray-500"></span>
+                    <button id="admin-product-next" class="btn-action" disabled>Sau</button>
                 </div>
             </div>
         </div>
@@ -262,6 +305,33 @@
                 <button onclick="switchView('home')" class="mt-6 bg-pastel text-main font-bold px-4 py-2 rounded-lg hover:bg-[#f1c5d6] transition text-sm">
                     &larr; Quay lại Home
                 </button>
+            </div>
+        </div>
+
+        <div id="view-payments" class="max-w-6xl mx-auto space-y-6 hidden">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-1">Đối soát chuyển khoản</h2>
+                <p class="text-gray-500">Chỉ xác nhận đã thanh toán sau khi kiểm tra tiền đã vào tài khoản người nhận.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex justify-end mb-4">
+                    <button onclick="loadPaymentReports()" class="bg-pastel text-main font-bold px-4 py-2 rounded-lg hover:bg-[#f1c5d6] transition text-sm">Làm mới</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-pastel text-main">
+                                <th class="p-3">Đơn hàng</th>
+                                <th class="p-3">Buyer</th>
+                                <th class="p-3">Shop</th>
+                                <th class="p-3">Số tiền</th>
+                                <th class="p-3">Thời gian</th>
+                                <th class="p-3 text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payment-report-body"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -353,8 +423,15 @@
             blocked: ['Chặn', 'bg-red-100 text-red-600'],
             ban: ['Khóa tài khoản', 'bg-red-200 text-red-800']
         };
+        const PRODUCT_STATUS_BADGE = {
+            approved: ['Đã duyệt', 'bg-green-100 text-green-700'],
+            pending: ['Đang chờ duyệt', 'bg-yellow-100 text-yellow-700'],
+            blocked: ['Đã chặn', 'bg-red-100 text-red-600'],
+            rejected: ['Đã từ chối', 'bg-gray-100 text-gray-600']
+        };
         const TARGET_TEXT = { product: 'Sản phẩm', shop: 'Shop', account: 'Tài khoản' };
         let rejectingId = null;
+        let adminProductPage = 1;
         let busy = false;
 
         function shortId(id) { return String(id).slice(0, 8); }
@@ -521,6 +598,92 @@
             }
         }
 
+        function adminProductRow(product) {
+            const [statusText, statusClass] = PRODUCT_STATUS_BADGE[product.moderation_status]
+                || [product.moderation_status, 'bg-gray-100 text-gray-600'];
+            const image = product.image_url
+                ? `<img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}" class="w-12 h-12 object-cover rounded-lg">`
+                : '<span class="text-gray-400">—</span>';
+            const action = product.moderation_status === 'approved'
+                ? `<button class="btn-action" data-product-block="${product.id}">Khóa sản phẩm</button>`
+                : '<span class="text-gray-300">—</span>';
+            return `
+                <tr class="border-b border-gray-50">
+                    <td class="p-3 text-gray-400">#${product.id}</td>
+                    <td class="p-3">${image}</td>
+                    <td class="p-3"><strong>${escapeHtml(product.name)}</strong><div class="text-xs text-gray-500">${escapeHtml(product.category)}</div></td>
+                    <td class="p-3">${escapeHtml(product.shop_name || '')}</td>
+                    <td class="p-3 whitespace-nowrap">${moneyText(product.price)}</td>
+                    <td class="p-3">${badge(statusText, statusClass)}</td>
+                    <td class="p-3 text-center whitespace-nowrap">${action}</td>
+                </tr>`;
+        }
+
+        async function loadAdminProducts(resetPage = false) {
+            if (resetPage) adminProductPage = 1;
+            const tbody = document.getElementById('admin-product-body');
+            tbody.innerHTML = stateRow(7, 'Đang tải...');
+            try {
+                const params = new URLSearchParams({
+                    page: adminProductPage,
+                    page_size: 50,
+                    status: document.getElementById('admin-product-status').value,
+                    q: document.getElementById('admin-product-search').value.trim()
+                });
+                const data = await api('/admin/products?' + params.toString());
+                const pageCount = Math.max(1, Math.ceil(data.total / data.page_size));
+                tbody.innerHTML = data.items.length
+                    ? data.items.map(adminProductRow).join('')
+                    : stateRow(7, 'Không có sản phẩm phù hợp.');
+                const english = document.documentElement.lang === 'en';
+                document.getElementById('admin-product-page').innerText = english
+                    ? `Page ${data.page} of ${pageCount} (${data.total} products)`
+                    : `Trang ${data.page} / ${pageCount} (${data.total} sản phẩm)`;
+                document.getElementById('admin-product-prev').disabled = data.page <= 1;
+                document.getElementById('admin-product-next').disabled = data.page >= pageCount;
+            } catch (err) {
+                if (err.status === 401) return handleError(err);
+                tbody.innerHTML = stateRow(7, `${escapeHtml(err.message)}<br><button class="btn-action mt-2" data-product-reload="1">Thử lại</button>`);
+            }
+        }
+
+        async function blockAdminProduct(id) {
+            if (busy) return;
+            const english = document.documentElement.lang === 'en';
+            const confirmation = english
+                ? 'Block this approved product? Buyers will no longer see it. Product data and existing orders will not be deleted.'
+                : 'Khóa sản phẩm đã duyệt này? Người mua sẽ không còn thấy sản phẩm. Dữ liệu sản phẩm và đơn hàng cũ không bị xóa.';
+            if (!window.confirm(confirmation)) return;
+            busy = true;
+            try {
+                await api(`/admin/products/${id}/block`, { method: 'POST' });
+                showModal(english ? 'Product blocked. No data was deleted.' : 'Đã khóa sản phẩm. Dữ liệu không bị xóa.');
+                await loadAdminProducts();
+            } catch (err) {
+                handleError(err);
+            } finally {
+                busy = false;
+            }
+        }
+
+        document.getElementById('admin-product-search').addEventListener('input', debounce(() => loadAdminProducts(true), 300));
+        document.getElementById('admin-product-status').addEventListener('change', () => loadAdminProducts(true));
+        document.getElementById('admin-product-prev').addEventListener('click', () => {
+            if (adminProductPage > 1) { adminProductPage--; loadAdminProducts(); }
+        });
+        document.getElementById('admin-product-next').addEventListener('click', () => {
+            adminProductPage++;
+            loadAdminProducts();
+        });
+        document.getElementById('admin-product-body').addEventListener('click', e => {
+            const block = e.target.closest('button[data-product-block]');
+            if (block) return blockAdminProduct(Number(block.dataset.productBlock));
+            if (e.target.closest('button[data-product-reload]')) loadAdminProducts();
+        });
+        window.addEventListener('site-language-change', () => {
+            if (!document.getElementById('view-products').classList.contains('hidden')) loadAdminProducts();
+        });
+
         async function updateModBadge() {
             try {
                 const data = await api('/admin/moderation?page_size=1&status=pending');
@@ -670,6 +833,47 @@
         });
         document.getElementById('ai-date').addEventListener('change', loadAIBlocked);
 
+        async function loadPaymentReports() {
+            const tbody = document.getElementById('payment-report-body');
+            tbody.innerHTML = stateRow(6, 'Đang tải...');
+            try {
+                const data = await api('/admin/payment-reports');
+                tbody.innerHTML = data.items.length ? data.items.map(order => `
+                    <tr class="border-b border-gray-50">
+                        <td class="p-3 font-semibold">#${order.id}</td>
+                        <td class="p-3">${escapeHtml(order.buyer_name)}</td>
+                        <td class="p-3">${escapeHtml(order.shop_name)}</td>
+                        <td class="p-3">${moneyText(order.total)}</td>
+                        <td class="p-3">${timeText(order.created_at)}</td>
+                        <td class="p-3 text-center"><button class="btn-action" data-payment-verify="${order.id}">Đã nhận tiền</button></td>
+                    </tr>`).join('') : stateRow(6, 'Không có chuyển khoản nào đang chờ đối soát.');
+            } catch (err) {
+                if (err.status === 401) return handleError(err);
+                tbody.innerHTML = stateRow(6, `${escapeHtml(err.message)}<br><button class="btn-action mt-2" data-payment-reload="1">Thử lại</button>`);
+            }
+        }
+
+        async function verifyTransfer(orderId) {
+            if (busy) return;
+            if (!window.confirm(`Xác nhận đã nhận đủ tiền cho đơn #${orderId}?`)) return;
+            busy = true;
+            try {
+                await api(`/admin/orders/${orderId}/verify-payment`, { method: 'POST' });
+                showModal(`Đã xác nhận thanh toán đơn #${orderId}.`);
+                await loadPaymentReports();
+            } catch (err) {
+                handleError(err);
+            } finally {
+                busy = false;
+            }
+        }
+
+        document.getElementById('payment-report-body').addEventListener('click', e => {
+            const verify = e.target.closest('button[data-payment-verify]');
+            if (verify) return verifyTransfer(Number(verify.dataset.paymentVerify));
+            if (e.target.closest('button[data-payment-reload]')) loadPaymentReports();
+        });
+
         // Một chỗ bắt mọi nút thao tác tài khoản (dữ liệu nằm trong data-*, không nhúng vào onclick)
         document.addEventListener('click', e => {
             const btn = e.target.closest('button[data-act]');
@@ -680,10 +884,10 @@
 
         // --- CHUYỂN ĐỔI VIEW (TABS) ---
         function switchView(viewName) {
-            const views = ['view-home', 'view-ai', 'view-ticket', 'view-buyer-mgmt', 'view-seller-mgmt', 'view-mod'];
+            const views = ['view-home', 'view-ai', 'view-ticket', 'view-buyer-mgmt', 'view-seller-mgmt', 'view-mod', 'view-products', 'view-payments'];
             views.forEach(v => document.getElementById(v).classList.add('hidden'));
 
-            const navs = ['nav-home', 'nav-ticket', 'nav-buyer', 'nav-seller', 'nav-mod'];
+            const navs = ['nav-home', 'nav-ticket', 'nav-buyer', 'nav-seller', 'nav-mod', 'nav-payments'];
             navs.forEach(n => document.getElementById(n).className = "px-6 py-2 rounded-xl nav-inactive transition");
 
             const show = (view, nav) => {
@@ -694,6 +898,8 @@
             else if (viewName === 'buyer-mgmt') { show('view-buyer-mgmt', 'nav-buyer'); loadBuyers(); }
             else if (viewName === 'seller-mgmt') { show('view-seller-mgmt', 'nav-seller'); loadSellers(); }
             else if (viewName === 'mod') { show('view-mod', 'nav-mod'); loadModeration(); }
+            else if (viewName === 'products') { show('view-products', 'nav-mod'); loadAdminProducts(true); }
+            else if (viewName === 'payments') { show('view-payments', 'nav-payments'); loadPaymentReports(); }
             else if (viewName === 'ticket') { show('view-ticket', 'nav-ticket'); loadTickets(); }
             else if (viewName === 'ai-mod') { show('view-ai', null); loadAIBlocked(); }   // trang con của Home, không tô menu
         }

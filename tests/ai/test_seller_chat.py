@@ -18,9 +18,11 @@ def ctx():
 @pytest.mark.parametrize("message,intent", [
     ("Doanh thu tuần này là bao nhiêu?", "revenue"), ("doanh số", "revenue"),
     ("Tồn kho còn bao nhiêu", "stock"), ("sản phẩm nào sắp hết hàng", "stock"),
+    ("Còn bao nhiêu áo thể thao trong kho?", "stock"),
     ("Sản phẩm bán chạy nhất?", "best"), ("top sản phẩm", "best"),
     ("Hàng nào ế nhất", "slow"), ("hàng bán chậm quá", "slow"), ("nên giảm giá gì", "slow"),
     ("Có bao nhiêu đơn hàng", "orders"),
+    ("Còn bao nhiêu đơn hàng?", "orders"),
     ("Cho mình gợi ý cải thiện", "insights"), ("tư vấn giúp mình", "insights"),
     ("xin chào", None), ("chào bạn", None),           # chữ "e" không được khớp bên trong từ khác
 ])
@@ -37,6 +39,18 @@ def test_tra_loi_ton_kho_co_mat_hang_sap_het():
     reply = chat.answer("tồn kho", ctx())
     assert "88" in reply and "Áo khoác (L, Đen): còn 2" in reply
     assert "Chưa có mặt hàng" in chat.answer("tồn kho", make_ctx(total_stock=10))
+
+
+def test_tra_loi_ton_kho_theo_ten_san_pham_va_bien_the():
+    context = make_ctx(
+        products=[product(1, "Áo thể thao nam", stock=12)],
+        variants=[variant(1, "Áo thể thao nam", stock=7, sold_14d=0, size="M", color="Đen"),
+                  {**variant(2, "Áo thể thao nam", stock=5, sold_14d=0, size="L", color="Đỏ"), "product_id": 1}],
+        total_stock=12,
+    )
+    reply = chat.answer("Còn bao nhiêu áo thể thao tồn kho?", context)
+    assert "Áo thể thao nam: còn 12" in reply
+    assert "M, Đen: 7" in reply and "L, Đỏ: 5" in reply
 
 
 def test_tra_loi_ban_chay_theo_thu_tu():

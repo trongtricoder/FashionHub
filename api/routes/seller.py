@@ -85,6 +85,10 @@ def update_order_status(order_id):
         return fail("NOT_FOUND", "Không tìm thấy đơn hàng.", 404)
     order = rows[0]
 
+    if (new_status in ("processing", "completed") and order["payment_method"] == "bank_transfer"
+            and order["payment_status"] != "paid"):
+        return fail("PAYMENT_NOT_CONFIRMED", "Chỉ xử lý đơn chuyển khoản sau khi Admin xác nhận đã nhận tiền.", 409)
+
     try:
         ordering.check_seller_transition(order["status"], new_status)
     except ordering.OrderError as err:
@@ -92,7 +96,7 @@ def update_order_status(order_id):
 
     items = db.table("order_items").select("*").eq("order_id", order_id).execute().data
     fields = {"status": new_status, "updated_at": datetime.now(timezone.utc).isoformat()}
-    if new_status == "completed" and order["payment_status"] == "unpaid":
+    if new_status == "completed" and order["payment_method"] == "cod" and order["payment_status"] == "unpaid":
         fields["payment_status"] = "paid"  # COD thu tiền khi giao xong
 
     deducted, status_saved = [], False

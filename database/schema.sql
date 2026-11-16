@@ -117,14 +117,20 @@ create table if not exists orders (
   total int not null,
   status text not null default 'pending'
     check (status in ('pending','processing','shipping','completed','cancelled')),
-  payment_method text not null check (payment_method in ('cod','mock_card')),
-  payment_status text not null default 'unpaid' check (payment_status in ('unpaid','paid')),
+  payment_method text not null check (payment_method in ('cod','mock_card','bank_transfer')),
+  payment_status text not null default 'unpaid' check (payment_status in ('unpaid','reported','paid')),
   receiver_name text not null, phone text not null, address text not null,
   lat double precision, lng double precision,
   eta_minutes int,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table orders drop constraint if exists orders_payment_method_check;
+alter table orders add constraint orders_payment_method_check
+  check (payment_method in ('cod','mock_card','bank_transfer'));
+alter table orders drop constraint if exists orders_payment_status_check;
+alter table orders add constraint orders_payment_status_check
+  check (payment_status in ('unpaid','reported','paid'));
 
 create table if not exists order_items (
   id bigint generated always as identity primary key,

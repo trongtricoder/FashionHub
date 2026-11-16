@@ -142,6 +142,53 @@ def test_checkout_tach_don_theo_shop(client, db):
     assert db.tables["cart_items"] == []  # đã xóa mục đặt khỏi giỏ
 
 
+def test_checkout_chuyen_khoan_tra_qr_va_de_cho_doi_soat(client, db, monkeypatch):
+    monkeypatch.setenv("PAYMENT_BANK_BIN", "970422")
+    monkeypatch.setenv("PAYMENT_BANK_NAME", "MB Bank")
+    monkeypatch.setenv("PAYMENT_ACCOUNT_NUMBER", "1234567890")
+    monkeypatch.setenv("PAYMENT_ACCOUNT_NAME", "HUYNH TRONG TRI")
+    item_id = add(client, 1, 2).get_json()["data"]["id"]
+    response = client.post("/api/orders/checkout", headers=BUYER, json=dict(
+        CHECKOUT, cart_item_ids=[item_id], payment_method="bank_transfer"))
+    assert response.status_code == 201
+    data = response.get_json()["data"]
+    assert data["orders"][0]["payment_status"] == "unpaid"
+    assert data["payment"]["recipient_name"] == "HUYNH TRONG TRI"
+    instruction = data["payment"]["instructions"][0]
+    assert instruction["order_id"] == data["orders"][0]["id"]
+    assert instruction["amount"] == 300000 and instruction["reference"] == f"FHORDER{instruction['order_id']}"
+    assert instruction["qr_data_url"].startswith("data:image/svg+xml;base64,")
+    reopened = client.get(f"/api/orders/{instruction['order_id']}/payment-instructions", headers=BUYER)
+    assert reopened.status_code == 200 and reopened.get_json()["data"]["bank_name"] == "MB Bank"
+    assert client.get(f"/api/orders/{instruction['order_id']}/payment-instructions", headers=OTHER).status_code == 404
+
+
+def test_checkout_chuyen_khoan_chua_cau_hinh_thi_khong_tao_don(client, db, monkeypatch):
+    monkeypatch.delenv("PAYMENT_ACCOUNT_NUMBER", raising=False)
+    item_id = add(client, 1, 1).get_json()["data"]["id"]
+    response = client.post("/api/orders/checkout", headers=BUYER, json=dict(
+        CHECKOUT, cart_item_ids=[item_id], payment_method="bank_transfer"))
+    assert response.status_code == 503
+    assert response.get_json()["error"]["code"] == "PAYMENT_NOT_CONFIGURED"
+    assert db.tables.get("orders", []) == [] and len(db.tables["cart_items"]) == 1
+
+
+def test_buyer_bao_da_chuyen_tien_va_admin_can_doi_soat(client, db, monkeypatch):
+    monkeypatch.setenv("PAYMENT_BANK_BIN", "970422")
+    monkeypatch.setenv("PAYMENT_BANK_NAME", "MB Bank")
+    monkeypatch.setenv("PAYMENT_ACCOUNT_NUMBER", "1234567890")
+    monkeypatch.setenv("PAYMENT_ACCOUNT_NAME", "HUYNH TRONG TRI")
+    item_id = add(client, 1, 1).get_json()["data"]["id"]
+    placed = client.post("/api/orders/checkout", headers=BUYER, json=dict(
+        CHECKOUT, cart_item_ids=[item_id], payment_method="bank_transfer")).get_json()["data"]["orders"][0]
+    order_id = placed["id"]
+    assert client.post(f"/api/orders/{order_id}/payment-report", headers=OTHER, json={}).status_code == 404
+    report = client.post(f"/api/orders/{order_id}/payment-report", headers=BUYER, json={})
+    assert report.status_code == 200 and report.get_json()["data"]["payment_status"] == "reported"
+    assert client.post(f"/api/orders/{order_id}/payment-report", headers=BUYER, json={}).status_code == 200
+    assert client.get("/api/orders", headers=BUYER).get_json()["data"]["items"][0]["payment_status"] == "reported"
+
+
 def test_checkout_khong_co_toa_do_thi_eta_null(client):
     a = add(client, 1, 1).get_json()["data"]["id"]
     order = client.post("/api/orders/checkout", headers=BUYER, json=dict(CHECKOUT, cart_item_ids=[a])).get_json()["data"]["orders"][0]

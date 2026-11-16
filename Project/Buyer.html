@@ -557,56 +557,45 @@
         height: 100%;
         object-fit: cover;
       }
-      .tryon-layout {
-        display: grid;
-        grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
-        gap: 20px;
-        align-items: start;
-      }
-      .tryon-panel {
-        background: var(--white);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 20px;
-      }
-      .tryon-canvas-wrap {
-        width: 100%;
-        max-width: 420px;
-        margin: 0 auto;
-        overflow: hidden;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        background: linear-gradient(180deg, #fffafd, #f8edf2);
-      }
-      #tryonCanvas { display: block; width: 100%; height: auto; }
-      .tryon-help { margin: 10px 0; color: var(--text-muted); font-size: 13px; }
-      .tryon-item-list { display: grid; gap: 8px; margin: 10px 0 18px; }
-      .tryon-item {
+      .checkout-gift {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        padding: 9px 11px;
+        gap: 12px;
+        margin-top: 12px;
+        padding: 10px;
         border: 1px solid var(--border);
-        border-radius: 10px;
+        border-radius: 12px;
         background: var(--pink-pale);
       }
-      .tryon-item-name { min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
-      .tryon-face-controls { display: grid; gap: 9px; margin-top: 12px; }
-      .tryon-camera-video {
-        display: block;
-        width: 100%;
-        max-width: 320px;
-        max-height: 220px;
-        margin-top: 8px;
-        border-radius: 10px;
-        background: #222;
+      .checkout-gift img {
+        width: 64px;
+        height: 76px;
+        flex: 0 0 64px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: var(--white);
       }
-      @media (max-width: 800px) {
-        .tryon-layout { grid-template-columns: 1fr; }
-        .tryon-panel { padding: 14px; }
+      .checkout-gift-info { flex: 1; min-width: 0; }
+      .checkout-gift-label { display: block; color: var(--pink-dark); font-size: 12px; font-weight: 700; }
+      .checkout-gift-name { display: block; margin-top: 2px; overflow-wrap: anywhere; }
+      .checkout-gift-price { color: var(--pink-dark); font-weight: 700; white-space: nowrap; }
+      .transfer-instructions { display: grid; gap: 12px; margin: 14px 0; }
+      .transfer-order {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--pink-pale);
       }
-
+      .transfer-order img { width: 140px; height: 140px; flex: 0 0 140px; background: white; }
+      .transfer-order-details { min-width: 0; overflow-wrap: anywhere; }
+      .transfer-order-details p { margin: 4px 0; font-size: 14px; }
+      @media (max-width: 480px) {
+        .transfer-order { flex-direction: column; align-items: stretch; }
+        .transfer-order img { align-self: center; }
+      }
       /* MODAL */
       .modal {
         display: none;
@@ -1269,9 +1258,6 @@
             data-i18n="nav_orders">
             📦 Đơn hàng
           </button>
-          <button onclick="showPage('tryon-page', this)">
-            👗 Thử đồ
-          </button>
         </nav>
       </div>
     </header>
@@ -1385,70 +1371,6 @@
           </p>
         </div>
         <div class="product-grid" id="productGrid"></div>
-      </section>
-
-      <!-- THỬ ĐỒ ẢO MỨC 1 -->
-      <section id="tryon-page" class="page">
-        <div class="page-heading">
-          <h1>👗 Thử đồ ảo</h1>
-          <p>Phối các lớp trang phục trên người mẫu 2D theo số đo đã lưu.</p>
-        </div>
-        <div class="tryon-layout">
-          <div class="tryon-panel">
-            <div class="tryon-canvas-wrap">
-              <canvas id="tryonCanvas" width="420" height="620" aria-label="Người mẫu thử đồ 2D"></canvas>
-            </div>
-            <p class="tryon-help" id="tryonStatus" aria-live="polite">
-              Đang chuẩn bị người mẫu...
-            </p>
-            <button class="btn btn-light" onclick="openAiModal(); switchAiTab('rec')">
-              Nhập hoặc cập nhật số đo
-            </button>
-          </div>
-
-          <div class="tryon-panel">
-            <h3>Trang phục đang thử</h3>
-            <div id="tryonSelectedItems" class="tryon-item-list"></div>
-            <button class="btn btn-light" type="button" onclick="clearTryOnOutfit()">
-              Bỏ toàn bộ trang phục
-            </button>
-
-            <h3 style="margin-top: 22px">Thêm từ giỏ hàng</h3>
-            <p class="tryon-help">Chỉ thử được mỗi loại trang phục một món; phụ kiện có thể ghép nhiều món.</p>
-            <div id="tryonCartItems" class="tryon-item-list">
-              <p class="tryon-help">Đang tải sản phẩm trong giỏ...</p>
-            </div>
-
-            <h3 style="margin-top: 20px">Thêm từ gợi ý AI</h3>
-            <p class="tryon-help">Mở Trợ lý AI, lưu số đo và chọn “Thử đồ” trên một gợi ý.</p>
-            <button class="btn btn-light" type="button" onclick="openAiModal(); switchAiTab('rec')">
-              Mở gợi ý AI
-            </button>
-
-            <div class="tryon-face-controls">
-              <h3>Ảnh khuôn mặt (tùy chọn)</h3>
-              <label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;">
-                <input type="checkbox" id="tryonFaceConsent" onchange="handleTryOnConsent(this.checked)">
-                <span>Tôi đồng ý xử lý ảnh khuôn mặt trong trình duyệt. Ảnh không được tải lên máy chủ.</span>
-              </label>
-              <input id="tryonFaceFile" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="handleTryOnFaceFile(event)">
-              <button id="tryonChooseFace" class="btn btn-light" type="button" disabled onclick="document.getElementById('tryonFaceFile').click()">
-                Chọn ảnh từ thiết bị
-              </button>
-              <button id="tryonStartCamera" class="btn btn-light" type="button" disabled onclick="startTryOnCamera()">
-                Mở webcam
-              </button>
-              <video id="tryonCameraVideo" class="tryon-camera-video" autoplay muted playsinline hidden></video>
-              <button id="tryonCaptureFace" class="btn btn-light" type="button" hidden onclick="captureTryOnFace()">
-                Chụp ảnh webcam
-              </button>
-              <button id="tryonClearFace" class="btn btn-light" type="button" hidden onclick="clearTryOnFace()">
-                Xóa ảnh khuôn mặt
-              </button>
-              <p id="tryonFaceStatus" class="tryon-help" aria-live="polite"></p>
-            </div>
-          </div>
-        </div>
       </section>
 
       <!-- GIỎ HÀNG -->
@@ -1599,8 +1521,8 @@
                 <option value="cod">
                   Thanh toán tiền mặt khi nhận hàng (COD)
                 </option>
-                <option value="mock_card">
-                  Thẻ (mô phỏng, không trừ tiền thật)
+                <option value="bank_transfer">
+                  Chuyển khoản ngân hàng bằng QR
                 </option>
               </select>
             </div>
@@ -1820,12 +1742,12 @@
           </div>
           <div class="two-cols">
             <div class="form-group">
-              <label for="bpGender">Giới tính gợi ý &amp; người mẫu</label>
+              <label for="bpGender">Giới tính gợi ý</label>
               <select id="bpGender">
                 <option value="female">Nữ</option>
                 <option value="male">Nam</option>
               </select>
-              <small>Dùng để lọc sản phẩm gợi ý và chọn người mẫu thử đồ.</small>
+              <small>Dùng để lọc sản phẩm gợi ý phù hợp với bạn.</small>
             </div>
             <div class="form-group">
               <label for="bpShape">Dáng người</label>
@@ -2172,6 +2094,23 @@
       </div>
     </div>
 
+    <div id="bankTransferModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="bankTransferTitle">
+      <div class="modal-content">
+        <span class="close" onclick="deferBankTransfer()" aria-label="Đóng">&times;</span>
+        <h2 id="bankTransferTitle" style="color: var(--pink-dark);">Thanh toán bằng QR</h2>
+        <p id="bankTransferStatus" style="margin-top: 6px; color: var(--text-muted);">
+          Quét mã bằng ứng dụng ngân hàng. Đơn chỉ được xác nhận thanh toán sau khi Admin đối soát.
+        </p>
+        <p style="margin-top: 12px;"><strong>Ngân hàng:</strong> <span id="transferBankName"></span></p>
+        <p><strong>Người nhận:</strong> <span id="transferRecipientName"></span></p>
+        <div id="transferInstructions" class="transfer-instructions"></div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end;">
+          <button class="btn btn-light" type="button" onclick="deferBankTransfer()">Thanh toán sau</button>
+          <button class="btn btn-primary" id="reportTransferButton" type="button" onclick="reportBankTransfers()">Tôi đã chuyển khoản</button>
+        </div>
+      </div>
+    </div>
+
     <div id="toast" class="toast"></div>
 
     <script src="/assets/js/core/api.js"></script>
@@ -2311,7 +2250,6 @@
           handleApiError(err);
         }
         updateCartUI();
-        renderTryOnCartItems();
       }
 
       const TRYON_SAMPLE_SVGS = {
@@ -2427,12 +2365,10 @@
             selectedTryOnItems.push(item);
           }
           closeModal("aiStylistModal");
-          const navButton = [...document.querySelectorAll("nav button")].find(
-            (button) => button.textContent.includes("Thử đồ"),
-          );
-          showPage("tryon-page", navButton);
-          renderTryOnSelectedItems();
-          await renderTryOnCanvas();
+          if (document.getElementById("tryonCanvas")) {
+            renderTryOnSelectedItems();
+            await renderTryOnCanvas();
+          }
         } catch (err) {
           handleApiError(err);
         }
@@ -2935,11 +2871,83 @@
           })),
           total: o.total,
           payment: o.payment_method,
+          paymentStatus: o.payment_status,
           date: new Date(o.created_at).toLocaleDateString("vi-VN"),
           distance:
             o.distance_km != null ? o.distance_km + " km" : "Chưa xác định",
           estDate: o.expected_at ? formatEta(o.expected_at) : "Chưa xác định",
         };
+      }
+
+      function openBankTransferModal(payment) {
+        activePaymentInstructions = payment.instructions || [];
+        document.getElementById("transferBankName").textContent = payment.bank_name;
+        document.getElementById("transferRecipientName").textContent = payment.recipient_name;
+        document.getElementById("bankTransferStatus").textContent =
+          "Quét mã bằng ứng dụng ngân hàng. Đơn chỉ được xác nhận thanh toán sau khi Admin đối soát.";
+        const container = document.getElementById("transferInstructions");
+        container.replaceChildren();
+        activePaymentInstructions.forEach((instruction) => {
+          const card = document.createElement("section");
+          card.className = "transfer-order";
+          const qr = document.createElement("img");
+          qr.src = instruction.qr_data_url;
+          qr.alt = `Mã QR thanh toán đơn hàng ${instruction.order_id}`;
+          const details = document.createElement("div");
+          details.className = "transfer-order-details";
+          const order = document.createElement("p");
+          const orderLabel = document.createElement("strong");
+          orderLabel.textContent = "Đơn hàng: ";
+          order.append(orderLabel, document.createTextNode(`#${instruction.order_id}`));
+          const amount = document.createElement("p");
+          const amountLabel = document.createElement("strong");
+          amountLabel.textContent = "Số tiền: ";
+          amount.append(
+            amountLabel,
+            document.createTextNode(`${Number(instruction.amount).toLocaleString("vi-VN")} VNĐ`),
+          );
+          const reference = document.createElement("p");
+          const referenceLabel = document.createElement("strong");
+          referenceLabel.textContent = "Nội dung chuyển khoản: ";
+          reference.append(referenceLabel, document.createTextNode(instruction.reference));
+          details.append(order, amount, reference);
+          card.append(qr, details);
+          container.appendChild(card);
+        });
+        document.getElementById("reportTransferButton").disabled = false;
+        document.getElementById("bankTransferModal").style.display = "flex";
+      }
+
+      async function reopenBankTransfer(orderId) {
+        try {
+          const payment = await api(`/orders/${orderId}/payment-instructions`);
+          openBankTransferModal(payment);
+        } catch (err) {
+          handleApiError(err);
+        }
+      }
+
+      function deferBankTransfer() {
+        closeModal("bankTransferModal");
+        showPage("orders-page", document.querySelectorAll("nav button")[4]);
+      }
+
+      async function reportBankTransfers() {
+        const button = document.getElementById("reportTransferButton");
+        if (button.disabled) return;
+        button.disabled = true;
+        try {
+          for (const instruction of activePaymentInstructions) {
+            await api(`/orders/${instruction.order_id}/payment-report`, { method: "POST", body: {} });
+          }
+          closeModal("bankTransferModal");
+          await loadOrders();
+          showPage("orders-page", document.querySelectorAll("nav button")[4]);
+          showToast("Đã ghi nhận báo chuyển khoản. Đơn đang chờ Admin đối soát.");
+        } catch (err) {
+          button.disabled = false;
+          document.getElementById("bankTransferStatus").textContent = err.message;
+        }
       }
 
       async function loadOrders() {
@@ -3189,7 +3197,7 @@
         placingOrder = true;
         try {
           const pos = await getPosition();
-          await api("/orders/checkout", {
+          const checkout = await api("/orders/checkout", {
             method: "POST",
             body: {
               cart_item_ids: selectedCart.map((c) => c.cartItemId),
@@ -3202,6 +3210,11 @@
             },
           });
           await Promise.all([loadCart(), loadOrders()]);
+
+          if (payMethod === "bank_transfer") {
+            openBankTransferModal(checkout.payment);
+            return;
+          }
 
           showToast("Đặt hàng hoàn tất!");
 
@@ -3239,6 +3252,7 @@
 
       let cart = [];
       let myOrders = [];
+      let activePaymentInstructions = [];
       let activeTab = "lay_hang";
       let isGpsOn = true;
       let selectedProdForCart = null;
@@ -3632,7 +3646,17 @@
           </div>
         `;
           })
-          .join("");
+          .join("") +
+          `
+          <div class="checkout-gift" role="note">
+          <img src="/assets/quatang.webp" alt="Lăn Khử Mùi Old Spice">
+          <div class="checkout-gift-info">
+            <span class="checkout-gift-label">Quà tặng kèm</span>
+            <strong class="checkout-gift-name">Lăn Khử Mùi Old Spice</strong>
+          </div>
+          <span class="checkout-gift-price">Miễn phí</span>
+          </div>
+        `;
 
         const voucherVal =
           parseInt(document.getElementById("cartVoucher").value) || 0;
@@ -3705,10 +3729,12 @@
             .join("")}
 
           ${order.cancelReason ? `<div style="font-size:13px; color:var(--red);">Lý do hủy: ${order.cancelReason}</div>` : ""}
+          ${order.payment === "bank_transfer" ? `<p style="font-size:13px; margin-top:8px;"><strong>Thanh toán:</strong> ${order.paymentStatus === "paid" ? "Đã xác nhận" : order.paymentStatus === "reported" ? "Đã báo chuyển khoản, chờ Admin đối soát" : "Chưa thanh toán"}</p>` : ""}
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; border-top:1px solid var(--border); padding-top:10px;">
             <div>Tổng tiền: <strong style="color:var(--pink-dark);">${order.total.toLocaleString("vi-VN")} VNĐ</strong></div>
             <div style="display:flex; gap:8px;">
               <button class="btn btn-light" onclick="openChatModal('', ${order.shopId})">💬 Liên hệ Shop</button>
+              ${order.payment === "bank_transfer" && order.paymentStatus === "unpaid" && order.rawStatus !== "cancelled" ? `<button class="btn btn-primary" onclick="reopenBankTransfer(${order.id})">Mở mã QR</button>` : ""}
               ${order.status === "lay_hang" || order.status === "cho_giao" ? `<button class="btn btn-danger" onclick="openCancelModal(${order.id})">Hủy Đơn Hàng</button>` : ""}
               ${order.status === "da_giao" ? `<button class="btn btn-light" onclick="openReturnModal(${order.id})">Trả Hàng / Hoàn Tiền</button>` : ""}
             </div>
@@ -4299,7 +4325,6 @@
               <span class="score-badge">Độ phù hợp ${Math.round(it.score)}%</span>
               <ul class="reason-list">${reasons}</ul>
               <button class="btn btn-light" style="font-size: 12px; padding: 4px 10px;" data-rec="${i}">Chọn &amp; Thêm giỏ</button>
-              <button class="btn btn-light" style="font-size: 12px; padding: 4px 10px;" data-tryon-rec="${i}">Thử đồ</button>
             </div>
           </div>`;
             })
@@ -4310,11 +4335,6 @@
             openProductFromAi(it.product.id, it.product);
           }),
         );
-          box.querySelectorAll("[data-tryon-rec]").forEach((btn) =>
-            btn.addEventListener("click", () =>
-              addTryOnProduct(items[Number(btn.dataset.tryonRec)].product),
-            ),
-          );
       }
 
       async function saveAndRecommend() {
@@ -4345,9 +4365,6 @@
               wishes: document.getElementById("bpWishes").value,
             },
           });
-          if (document.getElementById("tryon-page").classList.contains("active")) {
-            renderTryOnCanvas();
-          }
           const data = await api("/ai/recommend", {
             method: "POST",
             body: { limit: 8 },
@@ -4512,12 +4529,6 @@
       }
 
       function showPage(pageId, btn) {
-        if (
-          document.getElementById("tryon-page").classList.contains("active") &&
-          pageId !== "tryon-page"
-        ) {
-          stopTryOnCamera();
-        }
         document
           .querySelectorAll(".page")
           .forEach((p) => p.classList.remove("active"));
@@ -4530,7 +4541,6 @@
         }
         if (pageId === "cart-page") updateCartUI();
         if (pageId === "orders-page") renderOrders();
-        if (pageId === "tryon-page") loadTryOnCartItems();
       }
 
       function closeModal(id) {

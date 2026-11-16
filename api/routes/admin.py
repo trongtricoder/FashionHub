@@ -7,7 +7,7 @@ from flask import Blueprint, current_app, g, request
 from ..services import catalog, passwords
 from ..services.auth import require_role
 from ..services.db import get_db
-from ..services.queries import fetch_by_ids, shop_of_owner
+from ..services.queries import fetch_all, fetch_by_ids, fetch_main_images, shop_of_owner
 from ..services.responses import fail, ok
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")
@@ -143,6 +143,123 @@ def delete_user(user_id):
         current_app.logger.exception("Xóa tài khoản thất bại")
         return fail("DELETE_FAILED", "Không xóa được tài khoản, vui lòng thử lại.", 502)
     return ok({})
+
+
+# ======================================================================
+# Xác nhận chuyển khoản
+# ======================================================================
+
+@bp.get("/payment-reports")
+@require_role("admin")
+def payment_reports():
+    """GET /api/admin/payment-reports: chuyển khoản người mua báo đã gửi, chờ đối soát."""
+    db = get_db()
+    orders = fetch_all(lambda: (
+        db.table("orders").select(
+            "id,buyer_id,shop_id,total,status,created_at"
+        ).eq("payment_method", "bank_transfer").eq("payment_status", "reported")
+        .order("created_at", desc=True)
+    ))
+    orders = [order for order in orders if order["status"] != "cancelled"]
+    buyers = fetch_by_ids(db, "profiles", [order["buyer_id"] for order in orders], "id,username,full_name")
+    shops = fetch_by_ids(db, "shops", [order["shop_id"] for order in orders], "id,name")
+    return ok({"items": [{
+        "id": order["id"],
+        "total": order["total"],
+        "status": order["status"],
+        "created_at": order["created_at"],
+        "buyer_name": (buyers.get(order["buyer_id"]) or {}).get("full_name")
+            or (buyers.get(order["buyer_id"]) or {}).get("username") or "",
+        "shop_name": (shops.get(order["shop_id"]) or {}).get("name") or "",
+    } for order in orders]})
+
+
+@bp.post("/orders/<int:order_id>/verify-payment")
+@require_role("admin")
+def verify_transfer(order_id):
+    """POST /api/admin/orders/{id}/verify-payment: Admin marks a reported bank transfer paid."""
+    db = get_db()
+    rows = (db.table("orders").select(
+        "id,status,payment_method,payment_status"
+    ).eq("id", order_id).limit(1).execute().data)
+    if not rows:
+        return fail("NOT_FOUND", "Không tìm thấy đơn hàng.", 404)
+    order = rows[0]
+    if order["payment_method"] != "bank_transfer" or order["payment_status"] != "reported":
+        return fail("INVALID_STATE", "Đơn hàng chưa có báo chuyển khoản cần đối soát.", 422)
+    if order["status"] == "cancelled":
+        return fail("INVALID_STATE", "Không thể xác nhận thanh toán cho đơn đã hủy.", 422)
+    updated = (db.table("orders").update({
+        "payment_status": "paid", "updated_at": _now_iso(),
+    }).eq("id", order_id).eq("payment_status", "reported").eq("status", order["status"]).execute().data)
+    if not updated:
+        return fail("CONFLICT", "Đơn hàng vừa được cập nhật, vui lòng tải lại.", 409)
+    return ok({"id": order_id, "payment_status": "paid"})
+
+
+# ======================================================================
+# Quản lý tất cả sản phẩm
+# ======================================================================
+
+@bp.get("/products")
+@require_role("admin")
+def list_products():
+    """GET /api/admin/products?status&q&page&page_size: liệt kê cả sản phẩm chưa duyệt và đã duyệt."""
+    status = request.args.get("status", "all")
+    if status not in ("all", "pending", "approved", "blocked", "rejected"):
+        return fail("INVALID_INPUT", "Trạng thái sản phẩm không hợp lệ.", 400)
+
+    db = get_db()
+    rows = fetch_all(lambda: (
+        db.table("products").select(
+            "id,name,description,price,category,shop_id,moderation_status,is_active,created_at"
+        ).order("created_at", desc=True)
+    ))
+    if status != "all":
+        rows = [row for row in rows if row["moderation_status"] == status]
+    keyword = catalog.normalize(request.args.get("q") or "").strip()
+    if keyword:
+        rows = [row for row in rows if keyword in catalog.normalize(
+            f"{row['name']} {row.get('description') or ''}")]
+
+    page, size = _page_args()
+    result = catalog.paginate(rows, page, size)
+    page_rows = result["items"]
+    shops = fetch_by_ids(db, "shops", [row["shop_id"] for row in page_rows], "id,name")
+    images = fetch_main_images(db, [row["id"] for row in page_rows])
+    result["items"] = [{
+        "id": row["id"],
+        "name": row["name"],
+        "description": row.get("description") or "",
+        "price": row["price"],
+        "category": row["category"],
+        "moderation_status": row["moderation_status"],
+        "is_active": bool(row.get("is_active", True)),
+        "created_at": row.get("created_at"),
+        "shop_name": (shops.get(row["shop_id"]) or {}).get("name") or "",
+        "image_url": images.get(row["id"]),
+    } for row in page_rows]
+    return ok(result)
+
+
+@bp.post("/products/<int:product_id>/block")
+@require_role("admin")
+def block_product(product_id):
+    """POST /api/admin/products/{id}/block: chặn sản phẩm đã duyệt mà không xóa dữ liệu."""
+    db = get_db()
+    rows = db.table("products").select(
+        "id,moderation_status"
+    ).eq("id", product_id).limit(1).execute().data
+    if not rows:
+        return fail("NOT_FOUND", "Không tìm thấy sản phẩm.", 404)
+    if rows[0]["moderation_status"] != "approved":
+        return fail("INVALID_STATE", "Chỉ có thể khóa sản phẩm đã duyệt.", 422)
+
+    updated = (db.table("products").update({"moderation_status": "blocked"})
+               .eq("id", product_id).eq("moderation_status", "approved").execute().data)
+    if not updated:
+        return fail("CONFLICT", "Sản phẩm vừa được cập nhật, vui lòng tải lại.", 409)
+    return ok({"id": product_id, "moderation_status": "blocked"})
 
 
 # ======================================================================

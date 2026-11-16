@@ -296,7 +296,7 @@
             <h4>Đơn hàng #${o.id}</h4>
             <span class="badge badge-${o.status}">${STATUS_LABEL[o.status]}</span>
           </div>
-          <div class="order-meta">Đặt lúc ${timeText(o.created_at)} · ${o.payment_method === "cod" ? "COD" : "Thẻ (mô phỏng)"} (${o.payment_status === "paid" ? "đã thanh toán" : "chưa thanh toán"})</div>
+          <div class="order-meta">Đặt lúc ${timeText(o.created_at)} · ${o.payment_method === "cod" ? "COD" : o.payment_method === "bank_transfer" ? "Chuyển khoản QR" : "Thẻ (mô phỏng)"} (${o.payment_status === "paid" ? "đã thanh toán" : o.payment_status === "reported" ? "Buyer đã báo chuyển khoản, chờ Admin đối soát" : "chưa thanh toán"})</div>
           <div class="order-meta">Người nhận: <b>${escapeHtml(o.receiver_name)}</b> · ${escapeHtml(o.phone)} · ${escapeHtml(o.address)}</div>
           <div class="order-meta">Tài khoản mua: ${escapeHtml(o.buyer ? o.buyer.name : "")} · Khoảng cách: ${km} · Dự kiến giao: ${eta}</div>
           <div class="order-items">${items}</div>

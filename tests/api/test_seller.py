@@ -140,6 +140,23 @@ def test_hoan_tat_ghi_sold_count_su_kien_va_thanh_toan(client, db):
     assert len(events) == 1 and events[0]["event_type"] == "purchase" and events[0]["user_id"] == "u-buyer"
 
 
+def test_seller_khong_the_tu_danh_dau_chuyen_khoan_la_da_thanh_toan(client, db):
+    db.tables["orders"].append(order_row(6, 1, "shipping", payment="bank_transfer", paid="reported"))
+    response = put_status(client, 6, "completed")
+    assert response.status_code == 409
+    assert response.get_json()["error"]["code"] == "PAYMENT_NOT_CONFIRMED"
+    order = next(order for order in db.tables["orders"] if order["id"] == 6)
+    assert order["status"] == "shipping" and order["payment_status"] == "reported"
+
+
+def test_seller_khong_the_bat_dau_xu_ly_don_chuyen_khoan_chua_doi_soat(client, db):
+    db.tables["orders"].append(order_row(6, 1, "pending", payment="bank_transfer", paid="unpaid"))
+    response = put_status(client, 6, "processing")
+    assert response.status_code == 409
+    assert response.get_json()["error"]["code"] == "PAYMENT_NOT_CONFIRMED"
+    assert next(order for order in db.tables["orders"] if order["id"] == 6)["status"] == "pending"
+
+
 def test_ca_vong_doi_cua_mot_don(client, db):
     for status in ("processing", "shipping", "completed"):
         assert put_status(client, 1, status).status_code == 200

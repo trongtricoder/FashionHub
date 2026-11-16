@@ -7,6 +7,7 @@ import pytest
 from api.index import create_app
 from api.routes import admin as admin_routes
 from api.routes import me as me_routes
+from api.routes import products as products_routes
 from api.routes import seller as seller_routes
 from api.services import auth as auth_service
 from api.services import passwords
@@ -79,7 +80,7 @@ def db():
 
 @pytest.fixture
 def client(db, monkeypatch):
-    for module in (admin_routes, me_routes, seller_routes, auth_service):
+    for module in (admin_routes, me_routes, products_routes, seller_routes, auth_service):
         monkeypatch.setattr(module, "get_db", lambda: db)
     return create_app().test_client()
 
@@ -102,6 +103,7 @@ def test_chi_admin_moi_vao_duoc(client):
     assert client.get("/api/admin/users").status_code == 401
     assert get(client, "/api/admin/users", BUYER).status_code in (403,)       # buyer2 đang bị khóa nên 403 ACCOUNT_BANNED
     assert get(client, "/api/admin/moderation", SELLER).status_code == 403
+    assert get(client, "/api/admin/products", SELLER).status_code == 403
     assert post(client, "/api/admin/moderation/1/approve", headers=SELLER).status_code == 403
 
 
@@ -175,6 +177,62 @@ def test_xoa_tai_khoan_da_co_don_hang_bi_chan(client, db):
 def test_xoa_tai_khoan_chua_co_don(client, db):
     assert client.delete(f"/api/admin/users/{UID['s2']}", headers=ADMIN).status_code == 200
     assert db.deleted_users == [UID["s2"]] and all(p["id"] != UID["s2"] for p in db.tables["profiles"])
+
+
+def test_admin_doi_soat_chuyen_khoan_da_bao(client, db):
+    db.tables["orders"].append({
+        "id": 12, "buyer_id": UID["b1"], "shop_id": 1, "total": 250000,
+        "status": "pending", "payment_method": "bank_transfer", "payment_status": "reported",
+        "receiver_name": "Lan", "created_at": now(),
+    })
+    reports = get(client, "/api/admin/payment-reports").get_json()["data"]["items"]
+    assert reports == [{
+        "id": 12, "total": 250000, "status": "pending", "created_at": db.tables["orders"][-1]["created_at"],
+        "buyer_name": "Nguyễn Thị Lan", "shop_name": "Shop A",
+    }]
+    assert get(client, "/api/admin/payment-reports", SELLER).status_code == 403
+    verified = post(client, "/api/admin/orders/12/verify-payment").get_json()["data"]
+    assert verified == {"id": 12, "payment_status": "paid"}
+    assert get(client, "/api/admin/payment-reports").get_json()["data"]["items"] == []
+
+
+def test_admin_khong_the_xac_nhan_don_chua_bao_hoac_da_huy(client, db):
+    db.tables["orders"].append({
+        "id": 13, "buyer_id": UID["b1"], "shop_id": 1, "total": 250000,
+        "status": "pending", "payment_method": "bank_transfer", "payment_status": "unpaid",
+    })
+    db.tables["orders"].append({
+        "id": 14, "buyer_id": UID["b1"], "shop_id": 1, "total": 250000,
+        "status": "cancelled", "payment_method": "bank_transfer", "payment_status": "reported",
+    })
+    assert post(client, "/api/admin/orders/13/verify-payment").status_code == 422
+    assert post(client, "/api/admin/orders/14/verify-payment").status_code == 422
+
+
+# ---------- tất cả sản phẩm ----------
+
+def test_admin_xem_va_loc_tat_ca_san_pham(client):
+    data = get(client, "/api/admin/products").get_json()["data"]
+    assert data["total"] == 3
+    assert {item["moderation_status"] for item in data["items"]} == {"approved", "blocked", "pending"}
+    assert next(item for item in data["items"] if item["id"] == 2)["shop_name"] == "Shop A"
+
+    approved = get(client, "/api/admin/products?status=approved").get_json()["data"]
+    assert [item["id"] for item in approved["items"]] == [1]
+    search = get(client, "/api/admin/products?q=GUCCI").get_json()["data"]
+    assert [item["id"] for item in search["items"]] == [2]
+    assert get(client, "/api/admin/products?status=unknown").status_code == 400
+
+
+def test_admin_khoa_san_pham_da_duyet_ma_khong_xoa_du_lieu(client, db):
+    response = post(client, "/api/admin/products/1/block")
+    assert response.status_code == 200
+    assert response.get_json()["data"] == {"id": 1, "moderation_status": "blocked"}
+    assert next(product for product in db.tables["products"] if product["id"] == 1)["name"] == "Áo thun basic"
+    assert client.get("/api/products").get_json()["data"]["items"] == []
+    assert post(client, "/api/admin/products/1/block").status_code == 422
+    assert post(client, "/api/admin/products/3/block").status_code == 422
+    assert post(client, "/api/admin/products/999/block").status_code == 404
 
 
 # ---------- hàng đợi duyệt ----------
