@@ -19,9 +19,15 @@ def test_vietqr_payload_contains_transfer_amount_and_reference():
     assert "FHORDER42" in payload
     assert "315000" in payload
     assert "970422" in payload and "1234567890" in payload
+    beneficiary = vietqr._tlv("00", "970422") + vietqr._tlv("01", "1234567890")
+    merchant_account = (
+        vietqr._tlv("00", "A000000727")
+        + vietqr._tlv("01", beneficiary)
+        + vietqr._tlv("02", "QRIBFTTA")
+    )
+    assert vietqr._tlv("38", merchant_account) in payload
     assert re.search(r"6304[0-9A-F]{4}$", payload)
     assert payload[-4:] == vietqr._crc16(payload[:-4])
-
 
 def test_qr_is_generated_locally_as_svg_data_url():
     payload = vietqr.transfer_payload(SETTINGS, 7, 99000)

@@ -49,11 +49,14 @@ def transfer_payload(settings, order_id, amount):
         raise ValueError("Số tiền chuyển khoản không hợp lệ.")
 
     reference = f"FHORDER{order_id}"
+    beneficiary = "".join((
+        _tlv("00", settings["bank_bin"]),
+        _tlv("01", settings["account_number"]),
+    ))
     merchant_account = "".join((
         _tlv("00", "A000000727"),
-        _tlv("01", settings["bank_bin"]),
-        _tlv("02", settings["account_number"]),
-        _tlv("03", "QRIBFTTA"),
+        _tlv("01", beneficiary),
+        _tlv("02", "QRIBFTTA"),
     ))
     additional_data = _tlv("08", reference)
     payload = "".join((
@@ -63,7 +66,6 @@ def transfer_payload(settings, order_id, amount):
         _tlv("53", "704"),
         _tlv("54", str(amount)),
         _tlv("58", "VN"),
-        _tlv("59", settings["account_name"]),
         _tlv("62", additional_data),
         "6304",
     ))
