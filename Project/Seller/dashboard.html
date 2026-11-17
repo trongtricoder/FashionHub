@@ -290,7 +290,7 @@
 
     function renderKpis(k) {
       const cards = [
-        ["Doanh thu", money(k.total_revenue)], ["Đơn hoàn tất", k.total_orders], ["Lượt xem", k.total_views],
+        [isEnglish() ? "Net revenue (after 7% fee)" : "Doanh thu thực nhận sau phí", money(k.total_revenue)], ["Đơn hoàn tất", k.total_orders], ["Lượt xem", k.total_views],
         ["Tỷ lệ chuyển đổi", (k.conversion_rate * 100).toFixed(1) + "%"], ["Tổng đã bán", k.total_sold], ["Tổng tồn kho", k.total_stock]
       ];
       document.getElementById("kpiRow").innerHTML = cards.map(c =>
@@ -312,18 +312,18 @@
       const pad = arr => arr.concat(Array(fcLen).fill(null));
       const labels = d.labels.concat(d.forecast ? d.forecast.labels : []).map(l => fmtLabel(l, unit));
       const datasets = [
-        { label: english ? "Revenue (VND)" : "Doanh thu (VNĐ)", data: pad(d.revenue), borderColor: "#D985A7", backgroundColor: "rgba(217, 133, 167, 0.15)", fill: true, tension: 0.35, yAxisID: "y" },
+        { label: english ? "Net revenue (VND)" : "Doanh thu thực nhận sau phí (VNĐ)", data: pad(d.revenue), borderColor: "#D985A7", backgroundColor: "rgba(217, 133, 167, 0.15)", fill: true, tension: 0.35, yAxisID: "y" },
         { label: english ? "Views" : "Lượt xem", data: pad(d.views), borderColor: "#8a727d", tension: 0.35, yAxisID: "y1" }
       ];
       if (d.forecast) {
         // nối từ điểm thật cuối cùng để đường dự đoán liền mạch với đường doanh thu
         const lastActual = d.revenue[d.revenue.length - 1];
-        datasets.push({ label: english ? "Revenue forecast" : "Dự đoán doanh thu", data: Array(d.labels.length - 1).fill(null).concat([lastActual], d.forecast.revenue),
+        datasets.push({ label: english ? "Net revenue forecast" : "Dự đoán doanh thu thực nhận sau phí", data: Array(d.labels.length - 1).fill(null).concat([lastActual], d.forecast.revenue),
           borderColor: "#4a3b43", borderDash: [6, 6], pointRadius: 2, tension: 0.2, yAxisID: "y" });
         const total = d.forecast.revenue.reduce((a, b) => a + b, 0);
         note.innerText = english
-          ? `Revenue forecast for the next 7 days: approximately ${formatDashboardMoney(total)} (based on the last 30 days and weekday shopping patterns).`
-          : `Dự đoán doanh thu 7 ngày tới: khoảng ${money(total)} (tính từ xu hướng 30 ngày gần nhất và thói quen mua theo thứ trong tuần).`;
+          ? `Net revenue forecast for the next 7 days: approximately ${formatDashboardMoney(total)} (based on the last 30 days and weekday shopping patterns).`
+          : `Dự đoán doanh thu thực nhận sau phí 7 ngày tới: khoảng ${money(total)} (tính từ xu hướng 30 ngày gần nhất và thói quen mua theo thứ trong tuần).`;
       } else {
         note.innerText = english ? "No forecast is available for the monthly view." : "Xem theo tháng không có dự đoán.";
       }

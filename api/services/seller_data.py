@@ -22,12 +22,19 @@ def shop_totals(db, shop_id):
     return sum(p["sold_count"] for p in products), sum(v["stock"] for v in variants)
 
 
+def seller_revenue(order):
+    """Return post-fee earnings, treating pre-fee orders as their original total."""
+    if order.get("platform_fee_rate", 0) and order.get("seller_net") is not None:
+        return order["seller_net"]
+    return order["total"]
+
+
 def completed_orders_since(db, shop_id, since_iso):
-    """Các đơn hoàn tất từ mốc since_iso, dạng (ngày hoàn tất theo giờ Việt Nam, tổng tiền)."""
+    """Các đơn hoàn tất từ mốc since_iso, dạng (ngày hoàn tất theo giờ Việt Nam, tiền shop nhận)."""
     rows = fetch_all(lambda: (
-        db.table("orders").select("id,total,updated_at").eq("shop_id", shop_id)
+        db.table("orders").select("id,total,platform_fee_rate,seller_net,updated_at").eq("shop_id", shop_id)
         .eq("status", "completed").gte("updated_at", since_iso).order("id")))
-    return [(stats.vn_date(r["updated_at"]), r["total"]) for r in rows]
+    return [(stats.vn_date(r["updated_at"]), seller_revenue(r)) for r in rows]
 
 
 def dashboard_data(db, shop, range_key, today):
@@ -67,7 +74,9 @@ def insight_context(db, shop, today):
     variants = fetch_in_chunks(db, "product_variants", "product_id", [p["id"] for p in products], "id,product_id,size,color,stock")
 
     orders = fetch_all(lambda: (
-        db.table("orders").select("id,status,buyer_id,created_at,updated_at,total").eq("shop_id", sid)
+        db.table("orders").select(
+            "id,status,buyer_id,created_at,updated_at,total,platform_fee_rate,seller_net"
+        ).eq("shop_id", sid)
         .gte("updated_at", since30).order("id")))
     status_rows = fetch_all(lambda: db.table("orders").select("id,status").eq("shop_id", sid).order("id"))
     orders_by_status = {}
@@ -80,12 +89,13 @@ def insight_context(db, shop, today):
         if order["status"] != "completed":
             continue
         age = (today - stats.vn_date(order["updated_at"])).days
+        revenue = seller_revenue(order)
         if 0 <= age <= 29:
-            revenue_30d += order["total"]
+            revenue_30d += revenue
         if 0 <= age <= 6:
-            revenue_last7 += order["total"]
+            revenue_last7 += revenue
         elif 7 <= age <= 13:
-            revenue_prev7 += order["total"]
+            revenue_prev7 += revenue
 
     # Số lượng bán theo sản phẩm (30 ngày) và theo biến thể (14 ngày): tính các đơn đặt trong khoảng và chưa hủy
     selling = {o["id"]: stats.vn_date(o["created_at"]) for o in orders if o["status"] != "cancelled"

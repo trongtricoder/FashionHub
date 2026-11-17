@@ -286,8 +286,27 @@
           <img src="${escapeHtml(i.image_url || "")}" alt="${escapeHtml(i.product_name)}">
           <div>${escapeHtml(i.product_name)}<div class="order-meta">${escapeHtml(i.size)} / ${escapeHtml(i.color)} x ${i.quantity} · ${money(i.price)}</div></div>
         </div>`).join("");
-      const actions = (ACTIONS[o.status] || []).map(a =>
+      const needsPayment = o.payment_method === "bank_transfer" && o.payment_status !== "paid";
+      const actions = (ACTIONS[o.status] || []).filter(a => {
+        if (needsPayment && a.to === "processing") return false;
+        if (o.payment_method === "bank_transfer" && o.payment_status !== "unpaid" && a.to === "cancelled") return false;
+        return true;
+      }).map(a =>
         `<button class="btn ${a.kind}" data-act="status" data-id="${o.id}" data-to="${a.to}" data-ask="${escapeHtml(a.ask || "")}">${a.label}</button>`).join("");
+      const verifyAction = o.status === "pending" && o.payment_method === "bank_transfer" && o.payment_status === "reported"
+        ? `<button class="btn btn-ok" data-act="verify-payment" data-id="${o.id}">Xác nhận đã nhận tiền</button>`
+        : "";
+      const paymentLabel = o.payment_method === "bank_transfer"
+        ? o.payment_status === "paid" ? "đã xác nhận bởi Seller" : o.payment_status === "reported" ? "Buyer đã báo chuyển khoản, chờ Seller xác nhận" : "chờ Buyer chuyển khoản"
+        : o.payment_method === "cod" ? o.payment_status === "paid" ? "COD đã thu" : "COD, thu khi giao" : "đã thanh toán";
+      const feeSummary = o.platform_fee_rate > 0
+        ? `<div class="order-meta">Phí nền tảng (${o.platform_fee_rate}%): -${money(o.platform_fee)} · Shop còn lại sau phí: <b>${money(o.seller_net)}</b></div>`
+        : `<div class="order-meta">Đơn tạo trước khi áp dụng phí nền tảng.</div>`;
+      const settlementNote = o.payment_method === "cod"
+        ? "COD: Shop thu tiền từ khách, sau đó cần đối soát phí với FashionHub."
+        : o.payment_method === "bank_transfer"
+          ? "QR vào tài khoản FashionHub; khoản của Shop được đối soát thủ công."
+          : "Thanh toán thẻ đang mô phỏng.";
       const eta = o.expected_at ? timeText(o.expected_at) : "Chưa xác định";
       const km = o.distance_km != null ? o.distance_km + " km" : "Chưa xác định";
       return `
@@ -296,13 +315,16 @@
             <h4>Đơn hàng #${o.id}</h4>
             <span class="badge badge-${o.status}">${STATUS_LABEL[o.status]}</span>
           </div>
-          <div class="order-meta">Đặt lúc ${timeText(o.created_at)} · ${o.payment_method === "cod" ? "COD" : o.payment_method === "bank_transfer" ? "Chuyển khoản QR" : "Thẻ (mô phỏng)"} (${o.payment_status === "paid" ? "đã thanh toán" : o.payment_status === "reported" ? "Buyer đã báo chuyển khoản, chờ Admin đối soát" : "chưa thanh toán"})</div>
+          <div class="order-meta">Đặt lúc ${timeText(o.created_at)} · ${o.payment_method === "cod" ? "COD" : o.payment_method === "bank_transfer" ? "Chuyển khoản QR vào tài khoản FashionHub" : "Thẻ (mô phỏng)"} (${paymentLabel})</div>
           <div class="order-meta">Người nhận: <b>${escapeHtml(o.receiver_name)}</b> · ${escapeHtml(o.phone)} · ${escapeHtml(o.address)}</div>
           <div class="order-meta">Tài khoản mua: ${escapeHtml(o.buyer ? o.buyer.name : "")} · Khoảng cách: ${km} · Dự kiến giao: ${eta}</div>
           <div class="order-items">${items}</div>
+          ${feeSummary}
+          ${o.platform_fee_rate > 0 ? `<div class="order-meta">${settlementNote}</div>` : ""}
           <div class="order-foot">
-            <b>Tổng: ${money(o.total)}</b>
+            <b>Tổng tiền khách trả: ${money(o.total)}</b>
             <div class="order-actions">
+              ${verifyAction}
               ${actions}
             </div>
           </div>
@@ -335,12 +357,30 @@
       await Promise.all([loadStats(), loadOrders()]);
     }
 
+    async function verifyPayment(orderId) {
+      if (busy) return;
+      const message = `Đã kiểm tra tài khoản FashionHub và xác nhận đã nhận đủ tiền cho đơn #${orderId}?`;
+      if (!window.confirm(window.translateSiteText ? translateSiteText(message) : message)) return;
+      busy = true;
+      document.querySelectorAll("#orderList button").forEach(b => b.disabled = true);
+      try {
+        const result = await api(`/seller/orders/${orderId}/verify-payment`, { method: "POST" });
+        showToast(`Đã xác nhận thanh toán đơn #${orderId}. Phí nền tảng: ${money(result.platform_fee)}.`);
+      } catch (err) {
+        handleError(err);
+      } finally {
+        busy = false;
+        await Promise.all([loadStats(), loadOrders()]);
+      }
+    }
+
     // Một chỗ bắt mọi cú bấm trong danh sách đơn (dữ liệu nằm trong data-*, không nhúng vào onclick)
     document.getElementById("orderList").addEventListener("click", e => {
       const btn = e.target.closest("button[data-act]");
       if (!btn) return;
       if (btn.dataset.act === "retry") loadOrders();
       if (btn.dataset.act === "status") changeStatus(Number(btn.dataset.id), btn.dataset.to, btn.dataset.ask);
+      if (btn.dataset.act === "verify-payment") verifyPayment(Number(btn.dataset.id));
     });
 
     document.getElementById("tabs").addEventListener("click", e => {

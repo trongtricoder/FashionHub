@@ -53,8 +53,8 @@ def bucket(day, unit):
 def build_dashboard(range_key, today, view_dates, completed, total_sold, total_stock, forecast=None):
     """Dựng phản hồi dashboard.
 
-    view_dates: ngày của từng lượt xem. completed: danh sách (ngày hoàn tất, tổng tiền) của đơn hoàn tất.
-    Doanh thu tính theo ngày đơn hoàn tất, vì chỉ đơn hoàn tất mới là tiền thật về shop.
+    view_dates: ngày của từng lượt xem. completed: danh sách (ngày hoàn tất, tiền shop nhận) của đơn hoàn tất.
+    Doanh thu là số tiền shop nhận sau phí nền tảng, tính theo ngày đơn hoàn tất.
     """
     unit, labels = labels_for(range_key, today)
     position = {label: i for i, label in enumerate(labels)}

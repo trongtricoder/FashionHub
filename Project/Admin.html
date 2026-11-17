@@ -77,7 +77,6 @@
             <button onclick="switchView('buyer-mgmt')" id="nav-buyer" class="px-6 py-2 rounded-xl nav-inactive transition">Buyer</button>
             <button onclick="switchView('seller-mgmt')" id="nav-seller" class="px-6 py-2 rounded-xl nav-inactive transition">Seller</button>
             <button onclick="switchView('mod')" id="nav-mod" class="px-6 py-2 rounded-xl nav-inactive transition">Duyệt <span id="mod-badge" class="hidden ml-1 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full"></span></button>
-            <button onclick="switchView('payments')" id="nav-payments" class="px-4 py-2 rounded-xl nav-inactive transition">Đối soát chuyển khoản</button>
             <a href="#" onclick="signOut(event)" class="px-4 py-2 ml-4 text-red-400 hover:text-red-600 font-bold transition">Đăng xuất</a>
         </nav>
     </header>
@@ -305,33 +304,6 @@
                 <button onclick="switchView('home')" class="mt-6 bg-pastel text-main font-bold px-4 py-2 rounded-lg hover:bg-[#f1c5d6] transition text-sm">
                     &larr; Quay lại Home
                 </button>
-            </div>
-        </div>
-
-        <div id="view-payments" class="max-w-6xl mx-auto space-y-6 hidden">
-            <div>
-                <h2 class="text-3xl font-bold text-gray-800 mb-1">Đối soát chuyển khoản</h2>
-                <p class="text-gray-500">Chỉ xác nhận đã thanh toán sau khi kiểm tra tiền đã vào tài khoản người nhận.</p>
-            </div>
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div class="flex justify-end mb-4">
-                    <button onclick="loadPaymentReports()" class="bg-pastel text-main font-bold px-4 py-2 rounded-lg hover:bg-[#f1c5d6] transition text-sm">Làm mới</button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-sm">
-                        <thead>
-                            <tr class="bg-pastel text-main">
-                                <th class="p-3">Đơn hàng</th>
-                                <th class="p-3">Buyer</th>
-                                <th class="p-3">Shop</th>
-                                <th class="p-3">Số tiền</th>
-                                <th class="p-3">Thời gian</th>
-                                <th class="p-3 text-center">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="payment-report-body"></tbody>
-                    </table>
-                </div>
             </div>
         </div>
 
@@ -833,47 +805,6 @@
         });
         document.getElementById('ai-date').addEventListener('change', loadAIBlocked);
 
-        async function loadPaymentReports() {
-            const tbody = document.getElementById('payment-report-body');
-            tbody.innerHTML = stateRow(6, 'Đang tải...');
-            try {
-                const data = await api('/admin/payment-reports');
-                tbody.innerHTML = data.items.length ? data.items.map(order => `
-                    <tr class="border-b border-gray-50">
-                        <td class="p-3 font-semibold">#${order.id}</td>
-                        <td class="p-3">${escapeHtml(order.buyer_name)}</td>
-                        <td class="p-3">${escapeHtml(order.shop_name)}</td>
-                        <td class="p-3">${moneyText(order.total)}</td>
-                        <td class="p-3">${timeText(order.created_at)}</td>
-                        <td class="p-3 text-center"><button class="btn-action" data-payment-verify="${order.id}">Đã nhận tiền</button></td>
-                    </tr>`).join('') : stateRow(6, 'Không có chuyển khoản nào đang chờ đối soát.');
-            } catch (err) {
-                if (err.status === 401) return handleError(err);
-                tbody.innerHTML = stateRow(6, `${escapeHtml(err.message)}<br><button class="btn-action mt-2" data-payment-reload="1">Thử lại</button>`);
-            }
-        }
-
-        async function verifyTransfer(orderId) {
-            if (busy) return;
-            if (!window.confirm(`Xác nhận đã nhận đủ tiền cho đơn #${orderId}?`)) return;
-            busy = true;
-            try {
-                await api(`/admin/orders/${orderId}/verify-payment`, { method: 'POST' });
-                showModal(`Đã xác nhận thanh toán đơn #${orderId}.`);
-                await loadPaymentReports();
-            } catch (err) {
-                handleError(err);
-            } finally {
-                busy = false;
-            }
-        }
-
-        document.getElementById('payment-report-body').addEventListener('click', e => {
-            const verify = e.target.closest('button[data-payment-verify]');
-            if (verify) return verifyTransfer(Number(verify.dataset.paymentVerify));
-            if (e.target.closest('button[data-payment-reload]')) loadPaymentReports();
-        });
-
         // Một chỗ bắt mọi nút thao tác tài khoản (dữ liệu nằm trong data-*, không nhúng vào onclick)
         document.addEventListener('click', e => {
             const btn = e.target.closest('button[data-act]');
@@ -884,10 +815,10 @@
 
         // --- CHUYỂN ĐỔI VIEW (TABS) ---
         function switchView(viewName) {
-            const views = ['view-home', 'view-ai', 'view-ticket', 'view-buyer-mgmt', 'view-seller-mgmt', 'view-mod', 'view-products', 'view-payments'];
+            const views = ['view-home', 'view-ai', 'view-ticket', 'view-buyer-mgmt', 'view-seller-mgmt', 'view-mod', 'view-products'];
             views.forEach(v => document.getElementById(v).classList.add('hidden'));
 
-            const navs = ['nav-home', 'nav-ticket', 'nav-buyer', 'nav-seller', 'nav-mod', 'nav-payments'];
+            const navs = ['nav-home', 'nav-ticket', 'nav-buyer', 'nav-seller', 'nav-mod'];
             navs.forEach(n => document.getElementById(n).className = "px-6 py-2 rounded-xl nav-inactive transition");
 
             const show = (view, nav) => {
@@ -899,7 +830,6 @@
             else if (viewName === 'seller-mgmt') { show('view-seller-mgmt', 'nav-seller'); loadSellers(); }
             else if (viewName === 'mod') { show('view-mod', 'nav-mod'); loadModeration(); }
             else if (viewName === 'products') { show('view-products', 'nav-mod'); loadAdminProducts(true); }
-            else if (viewName === 'payments') { show('view-payments', 'nav-payments'); loadPaymentReports(); }
             else if (viewName === 'ticket') { show('view-ticket', 'nav-ticket'); loadTickets(); }
             else if (viewName === 'ai-mod') { show('view-ai', null); loadAIBlocked(); }   // trang con của Home, không tô menu
         }

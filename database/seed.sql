@@ -293,7 +293,12 @@ begin
     limit k;
 
     select sum(price * quantity) into v_total from order_items where order_id = v_order;
-    update orders set total = coalesce(v_total, 0) where id = v_order;
+    update orders
+    set total = coalesce(v_total, 0),
+        platform_fee_rate = 7,
+        platform_fee = round(coalesce(v_total, 0) * 0.07)::int,
+        seller_net = coalesce(v_total, 0) - round(coalesce(v_total, 0) * 0.07)::int
+    where id = v_order;
   end loop;
 end $$;
 

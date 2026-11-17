@@ -91,8 +91,11 @@ def checkout():
     created = []
     try:
         for plan in plans:
+            fee = ordering.platform_fee(plan["total"])
             order = db.table("orders").insert({
                 "buyer_id": g.user["id"], "shop_id": plan["shop_id"], "total": plan["total"],
+                "platform_fee_rate": ordering.PLATFORM_FEE_RATE, "platform_fee": fee,
+                "seller_net": plan["total"] - fee,
                 "payment_method": payment, "payment_status": "paid" if payment == "mock_card" else "unpaid",
                 "receiver_name": receiver, "phone": phone, "address": address,
                 "lat": lat, "lng": lng, "eta_minutes": plan["eta_minutes"],
@@ -117,7 +120,7 @@ def checkout():
 @bp.post("/<int:order_id>/payment-report")
 @require_role("buyer")
 def report_transfer(order_id):
-    """Buyer reports a bank transfer; payment remains unverified until Admin reconciles it."""
+    """Buyer reports a bank transfer; the shop Seller confirms it after checking the FashionHub account."""
     db = get_db()
     order = _own_order(db, order_id)
     if not order:
@@ -196,6 +199,8 @@ def cancel_order(order_id):
         return fail("NOT_FOUND", "Không tìm thấy đơn hàng.", 404)
     if order["status"] != "pending":
         return fail("INVALID_STATE", "Chỉ hủy được đơn đang chờ xác nhận.", 422)
+    if order["payment_method"] == "bank_transfer" and order["payment_status"] != "unpaid":
+        return fail("PAYMENT_REPORTED", "Đơn đã báo hoặc xác nhận chuyển khoản; vui lòng liên hệ shop để xử lý hoàn tiền.", 409)
     updated = db.table("orders").update({
         "status": "cancelled", "updated_at": datetime.now(timezone.utc).isoformat(),
     }).eq("id", order_id).execute().data[0]

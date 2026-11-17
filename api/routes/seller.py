@@ -62,6 +62,36 @@ def list_orders():
     return ok({"items": build_order_views(db, orders, with_buyer=True)})
 
 
+@bp.post("/orders/<int:order_id>/verify-payment")
+@require_role("seller")
+def verify_transfer(order_id):
+    """Seller verifies a reported bank transfer for an order in their own shop."""
+    db = get_db()
+    shop = _my_shop(db)
+    if not shop:
+        return _no_shop()
+    rows = (db.table("orders").select("*").eq("id", order_id)
+            .eq("shop_id", shop["id"]).limit(1).execute().data)
+    if not rows:
+        return fail("NOT_FOUND", "Không tìm thấy đơn hàng.", 404)
+    order = rows[0]
+    if (order["payment_method"] != "bank_transfer" or order["payment_status"] != "reported"
+            or order["status"] != "pending"):
+        return fail("INVALID_STATE", "Đơn chưa có báo chuyển khoản cần xác nhận hoặc không còn chờ xử lý.", 422)
+
+    updated = (db.table("orders").update({
+        "payment_status": "paid", "updated_at": datetime.now(timezone.utc).isoformat(),
+    }).eq("id", order_id).eq("shop_id", shop["id"]).eq("payment_status", "reported")
+      .eq("status", "pending").execute().data)
+    if not updated:
+        return fail("CONFLICT", "Đơn hàng vừa được cập nhật, vui lòng tải lại.", 409)
+    return ok({
+        "id": order_id, "payment_status": "paid",
+        "platform_fee": updated[0].get("platform_fee", 0),
+        "seller_net": updated[0].get("seller_net", updated[0]["total"]),
+    })
+
+
 @bp.patch("/orders/<int:order_id>/status")
 @require_role("seller")
 def update_order_status(order_id):
@@ -87,7 +117,10 @@ def update_order_status(order_id):
 
     if (new_status in ("processing", "completed") and order["payment_method"] == "bank_transfer"
             and order["payment_status"] != "paid"):
-        return fail("PAYMENT_NOT_CONFIRMED", "Chỉ xử lý đơn chuyển khoản sau khi Admin xác nhận đã nhận tiền.", 409)
+        return fail("PAYMENT_NOT_CONFIRMED", "Seller cần xác nhận đã nhận tiền chuyển khoản trước khi xử lý đơn.", 409)
+    if (new_status == "cancelled" and order["payment_method"] == "bank_transfer"
+            and order["payment_status"] != "unpaid"):
+        return fail("PAYMENT_REPORTED", "Đơn đã báo hoặc xác nhận chuyển khoản; vui lòng xử lý hoàn tiền trước khi hủy.", 409)
 
     try:
         ordering.check_seller_transition(order["status"], new_status)

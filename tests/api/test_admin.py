@@ -179,34 +179,9 @@ def test_xoa_tai_khoan_chua_co_don(client, db):
     assert db.deleted_users == [UID["s2"]] and all(p["id"] != UID["s2"] for p in db.tables["profiles"])
 
 
-def test_admin_doi_soat_chuyen_khoan_da_bao(client, db):
-    db.tables["orders"].append({
-        "id": 12, "buyer_id": UID["b1"], "shop_id": 1, "total": 250000,
-        "status": "pending", "payment_method": "bank_transfer", "payment_status": "reported",
-        "receiver_name": "Lan", "created_at": now(),
-    })
-    reports = get(client, "/api/admin/payment-reports").get_json()["data"]["items"]
-    assert reports == [{
-        "id": 12, "total": 250000, "status": "pending", "created_at": db.tables["orders"][-1]["created_at"],
-        "buyer_name": "Nguyễn Thị Lan", "shop_name": "Shop A",
-    }]
-    assert get(client, "/api/admin/payment-reports", SELLER).status_code == 403
-    verified = post(client, "/api/admin/orders/12/verify-payment").get_json()["data"]
-    assert verified == {"id": 12, "payment_status": "paid"}
-    assert get(client, "/api/admin/payment-reports").get_json()["data"]["items"] == []
-
-
-def test_admin_khong_the_xac_nhan_don_chua_bao_hoac_da_huy(client, db):
-    db.tables["orders"].append({
-        "id": 13, "buyer_id": UID["b1"], "shop_id": 1, "total": 250000,
-        "status": "pending", "payment_method": "bank_transfer", "payment_status": "unpaid",
-    })
-    db.tables["orders"].append({
-        "id": 14, "buyer_id": UID["b1"], "shop_id": 1, "total": 250000,
-        "status": "cancelled", "payment_method": "bank_transfer", "payment_status": "reported",
-    })
-    assert post(client, "/api/admin/orders/13/verify-payment").status_code == 422
-    assert post(client, "/api/admin/orders/14/verify-payment").status_code == 422
+def test_admin_khong_con_endpoint_doi_soat_chuyen_khoan(client):
+    assert get(client, "/api/admin/payment-reports").status_code == 404
+    assert post(client, "/api/admin/orders/12/verify-payment").status_code in (404, 405)
 
 
 # ---------- tất cả sản phẩm ----------

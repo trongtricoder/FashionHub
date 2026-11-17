@@ -253,7 +253,7 @@
         data: {
           labels: d.labels.map(l => l.slice(8) + '/' + l.slice(5, 7)),
           datasets: [{
-            label: isEnglish() ? 'Revenue (VND)' : 'Doanh thu (VNĐ)', data: d.revenue,
+            label: isEnglish() ? 'Net revenue (VND)' : 'Doanh thu thực nhận sau phí (VNĐ)', data: d.revenue,
             borderColor: '#D985A7', backgroundColor: 'rgba(217, 133, 167, 0.15)', borderWidth: 3, tension: 0.4, fill: true
           }]
         },

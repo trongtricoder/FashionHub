@@ -134,12 +134,19 @@ def test_checkout_tach_don_theo_shop(client, db):
     orders = res.get_json()["data"]["orders"]
     assert [o["shop_name"] for o in orders] == ["Shop A", "Shop B"]
     assert [o["total"] for o in orders] == [300000, 380000]
+    assert [(o["platform_fee_rate"], o["platform_fee"], o["seller_net"]) for o in db.tables["orders"]] == [
+        (7, 21000, 279000), (7, 26600, 353400),
+    ]
     assert all(o["payment_status"] == "paid" and o["status"] == "pending" for o in orders)
     assert all(o["eta_minutes"] is not None and o["expected_at"] and o["distance_km"] for o in orders)
     assert orders[0]["items"][0]["image_url"] == "https://img/a.jpg"
     assert orders[0]["items_summary"] == "Áo thun basic x2"
     assert len(db.tables["order_items"]) == 2
     assert db.tables["cart_items"] == []  # đã xóa mục đặt khỏi giỏ
+
+
+def test_phi_nen_tang_7_phan_tram_tren_don_100k():
+    assert orders_routes.ordering.platform_fee(100000) == 7000
 
 
 def test_checkout_chuyen_khoan_tra_qr_va_de_cho_doi_soat(client, db, monkeypatch):
@@ -157,6 +164,7 @@ def test_checkout_chuyen_khoan_tra_qr_va_de_cho_doi_soat(client, db, monkeypatch
     instruction = data["payment"]["instructions"][0]
     assert instruction["order_id"] == data["orders"][0]["id"]
     assert instruction["amount"] == 300000 and instruction["reference"] == f"FHORDER{instruction['order_id']}"
+    assert (db.tables["orders"][0]["platform_fee"], db.tables["orders"][0]["seller_net"]) == (21000, 279000)
     assert instruction["qr_data_url"].startswith("data:image/svg+xml;base64,")
     reopened = client.get(f"/api/orders/{instruction['order_id']}/payment-instructions", headers=BUYER)
     assert reopened.status_code == 200 and reopened.get_json()["data"]["bank_name"] == "MB Bank"
@@ -173,7 +181,7 @@ def test_checkout_chuyen_khoan_chua_cau_hinh_thi_khong_tao_don(client, db, monke
     assert db.tables.get("orders", []) == [] and len(db.tables["cart_items"]) == 1
 
 
-def test_buyer_bao_da_chuyen_tien_va_admin_can_doi_soat(client, db, monkeypatch):
+def test_buyer_bao_da_chuyen_tien_va_shop_se_xac_nhan(client, db, monkeypatch):
     monkeypatch.setenv("PAYMENT_BANK_BIN", "970422")
     monkeypatch.setenv("PAYMENT_BANK_NAME", "MB Bank")
     monkeypatch.setenv("PAYMENT_ACCOUNT_NUMBER", "1234567890")
@@ -186,14 +194,16 @@ def test_buyer_bao_da_chuyen_tien_va_admin_can_doi_soat(client, db, monkeypatch)
     report = client.post(f"/api/orders/{order_id}/payment-report", headers=BUYER, json={})
     assert report.status_code == 200 and report.get_json()["data"]["payment_status"] == "reported"
     assert client.post(f"/api/orders/{order_id}/payment-report", headers=BUYER, json={}).status_code == 200
+    assert client.post(f"/api/orders/{order_id}/cancel", headers=BUYER).status_code == 409
     assert client.get("/api/orders", headers=BUYER).get_json()["data"]["items"][0]["payment_status"] == "reported"
 
 
-def test_checkout_khong_co_toa_do_thi_eta_null(client):
+def test_checkout_khong_co_toa_do_thi_eta_null(client, db):
     a = add(client, 1, 1).get_json()["data"]["id"]
     order = client.post("/api/orders/checkout", headers=BUYER, json=dict(CHECKOUT, cart_item_ids=[a])).get_json()["data"]["orders"][0]
     assert order["eta_minutes"] is None and order["expected_at"] is None and order["distance_km"] is None
     assert order["payment_status"] == "unpaid"
+    assert (db.tables["orders"][0]["platform_fee"], db.tables["orders"][0]["seller_net"]) == (10500, 139500)
 
 
 def test_checkout_chi_dat_dong_duoc_chon(client, db):

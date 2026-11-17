@@ -13,6 +13,7 @@ BUYER = {"Authorization": "Bearer tok-buyer"}
 
 def order_row(oid, shop_id, status, payment="cod", paid="unpaid"):
     return {"id": oid, "buyer_id": "u-buyer", "shop_id": shop_id, "total": 300000, "status": status,
+            "platform_fee_rate": 7, "platform_fee": 21000, "seller_net": 279000,
             "payment_method": payment, "payment_status": paid, "receiver_name": "Lan", "phone": "0988123456",
             "address": "Quận 1", "lat": 10.77, "lng": 106.70, "eta_minutes": 40,
             "created_at": f"2026-10-2{oid}T03:00:00+00:00", "updated_at": "2026-10-28T03:00:00+00:00"}
@@ -96,6 +97,7 @@ def test_chi_thay_don_cua_shop_minh_kem_nguoi_mua(client):
     assert sorted(o["id"] for o in items) == [1, 2, 3, 4]       # đơn 5 của shop B không hiện
     first = next(o for o in items if o["id"] == 1)
     assert first["buyer"] == {"name": "Nguyễn Thị Lan", "phone": "0900000011"}
+    assert (first["platform_fee_rate"], first["platform_fee"], first["seller_net"]) == (7, 21000, 279000)
     assert first["items"][0]["image_url"] == "https://img/a.jpg" and first["distance_km"] is not None
 
 
@@ -155,6 +157,32 @@ def test_seller_khong_the_bat_dau_xu_ly_don_chuyen_khoan_chua_doi_soat(client, d
     assert response.status_code == 409
     assert response.get_json()["error"]["code"] == "PAYMENT_NOT_CONFIRMED"
     assert next(order for order in db.tables["orders"] if order["id"] == 6)["status"] == "pending"
+
+
+def test_seller_xac_nhan_qr_rieng_shop_va_chi_sau_do_moi_duoc_xu_ly(client, db):
+    db.tables["orders"].append(order_row(6, 1, "pending", payment="bank_transfer", paid="reported"))
+    db.tables["order_items"].append({
+        "id": 6, "order_id": 6, "variant_id": 1, "product_id": 1,
+        "product_name": "Áo thun basic", "size": "M", "color": "Trắng", "quantity": 1, "price": 150000,
+    })
+
+    assert put_status(client, 6, "processing").status_code == 409
+    assert client.post("/api/seller/orders/6/verify-payment", headers=BUYER).status_code == 403
+    assert client.post("/api/seller/orders/6/verify-payment", headers=S2).status_code == 404
+    confirmed = client.post("/api/seller/orders/6/verify-payment", headers=S1)
+    assert confirmed.status_code == 200
+    assert confirmed.get_json()["data"] == {
+        "id": 6, "payment_status": "paid", "platform_fee": 21000, "seller_net": 279000,
+    }
+    assert put_status(client, 6, "processing").status_code == 200
+    assert stock(db, 1) == 4
+
+
+def test_seller_khong_the_huy_don_qr_da_bao(client, db):
+    db.tables["orders"].append(order_row(6, 1, "pending", payment="bank_transfer", paid="reported"))
+    response = put_status(client, 6, "cancelled")
+    assert response.status_code == 409
+    assert response.get_json()["error"]["code"] == "PAYMENT_REPORTED"
 
 
 def test_ca_vong_doi_cua_mot_don(client, db):

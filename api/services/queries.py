@@ -59,6 +59,9 @@ def build_order_views(db, orders, with_buyer=False):
         if with_buyer:
             buyer = buyers.get(order["buyer_id"]) or {}
             view["buyer"] = {"name": buyer.get("full_name") or buyer.get("username"), "phone": buyer.get("phone")}
+            view["platform_fee_rate"] = order.get("platform_fee_rate", 0)
+            view["platform_fee"] = order.get("platform_fee", 0)
+            view["seller_net"] = order.get("seller_net", 0)
         views.append(view)
     return views
 

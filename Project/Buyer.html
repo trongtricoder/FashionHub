@@ -2226,7 +2226,7 @@
         <span class="close" onclick="deferBankTransfer()" aria-label="Đóng">&times;</span>
         <h2 id="bankTransferTitle" style="color: var(--pink-dark);">Thanh toán bằng QR</h2>
         <p id="bankTransferStatus" style="margin-top: 6px; color: var(--text-muted);">
-          Quét mã bằng ứng dụng ngân hàng. Đơn chỉ được xác nhận thanh toán sau khi Admin đối soát.
+          Quét mã bằng ứng dụng ngân hàng. Shop sẽ xác nhận thanh toán sau khi kiểm tra tài khoản FashionHub đã nhận tiền.
         </p>
         <p style="margin-top: 12px;"><strong>Ngân hàng:</strong> <span id="transferBankName"></span></p>
         <p><strong>Người nhận:</strong> <span id="transferRecipientName"></span></p>
@@ -3014,7 +3014,7 @@
         document.getElementById("transferBankName").textContent = payment.bank_name;
         document.getElementById("transferRecipientName").textContent = payment.recipient_name;
         document.getElementById("bankTransferStatus").textContent =
-          "Quét mã bằng ứng dụng ngân hàng. Đơn chỉ được xác nhận thanh toán sau khi Admin đối soát.";
+          "Quét mã bằng ứng dụng ngân hàng. Shop sẽ xác nhận thanh toán sau khi kiểm tra tài khoản FashionHub đã nhận tiền.";
         const container = document.getElementById("transferInstructions");
         container.replaceChildren();
         activePaymentInstructions.forEach((instruction) => {
@@ -3073,7 +3073,7 @@
           closeModal("bankTransferModal");
           await loadOrders();
           showPage("orders-page", document.querySelectorAll("nav button")[4]);
-          showToast("Đã ghi nhận báo chuyển khoản. Đơn đang chờ Admin đối soát.");
+          showToast("Đã ghi nhận báo chuyển khoản. Đơn đang chờ Shop xác nhận.");
         } catch (err) {
           button.disabled = false;
           document.getElementById("bankTransferStatus").textContent = err.message;
@@ -3868,13 +3868,13 @@
             .join("")}
 
           ${order.cancelReason ? `<div style="font-size:13px; color:var(--red);">Lý do hủy: ${order.cancelReason}</div>` : ""}
-          ${order.payment === "bank_transfer" ? `<p style="font-size:13px; margin-top:8px;"><strong>Thanh toán:</strong> ${order.paymentStatus === "paid" ? "Đã xác nhận" : order.paymentStatus === "reported" ? "Đã báo chuyển khoản, chờ Admin đối soát" : "Chưa thanh toán"}</p>` : ""}
+          ${order.payment === "bank_transfer" ? `<p style="font-size:13px; margin-top:8px;"><strong>Thanh toán:</strong> ${order.paymentStatus === "paid" ? "Shop đã xác nhận" : order.paymentStatus === "reported" ? "Đã báo chuyển khoản, chờ Shop xác nhận" : "Chưa thanh toán"}</p>` : ""}
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; border-top:1px solid var(--border); padding-top:10px;">
             <div>Tổng tiền: <strong style="color:var(--pink-dark);">${order.total.toLocaleString("vi-VN")} VNĐ</strong></div>
             <div style="display:flex; gap:8px;">
               <button class="btn btn-light" onclick="openChatModal('', ${order.shopId})">💬 Liên hệ Shop</button>
               ${order.payment === "bank_transfer" && order.paymentStatus === "unpaid" && order.rawStatus !== "cancelled" ? `<button class="btn btn-primary" onclick="reopenBankTransfer(${order.id})">Mở mã QR</button>` : ""}
-              ${order.status === "lay_hang" || order.status === "cho_giao" ? `<button class="btn btn-danger" onclick="openCancelModal(${order.id})">Hủy Đơn Hàng</button>` : ""}
+              ${(order.status === "lay_hang" || order.status === "cho_giao") && !(order.payment === "bank_transfer" && order.paymentStatus !== "unpaid") ? `<button class="btn btn-danger" onclick="openCancelModal(${order.id})">Hủy Đơn Hàng</button>` : ""}
               ${order.status === "da_giao" ? `<button class="btn btn-light" onclick="openReturnModal(${order.id})">Trả Hàng / Hoàn Tiền</button>` : ""}
             </div>
           </div>

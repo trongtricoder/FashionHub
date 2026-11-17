@@ -146,58 +146,6 @@ def delete_user(user_id):
 
 
 # ======================================================================
-# Xác nhận chuyển khoản
-# ======================================================================
-
-@bp.get("/payment-reports")
-@require_role("admin")
-def payment_reports():
-    """GET /api/admin/payment-reports: chuyển khoản người mua báo đã gửi, chờ đối soát."""
-    db = get_db()
-    orders = fetch_all(lambda: (
-        db.table("orders").select(
-            "id,buyer_id,shop_id,total,status,created_at"
-        ).eq("payment_method", "bank_transfer").eq("payment_status", "reported")
-        .order("created_at", desc=True)
-    ))
-    orders = [order for order in orders if order["status"] != "cancelled"]
-    buyers = fetch_by_ids(db, "profiles", [order["buyer_id"] for order in orders], "id,username,full_name")
-    shops = fetch_by_ids(db, "shops", [order["shop_id"] for order in orders], "id,name")
-    return ok({"items": [{
-        "id": order["id"],
-        "total": order["total"],
-        "status": order["status"],
-        "created_at": order["created_at"],
-        "buyer_name": (buyers.get(order["buyer_id"]) or {}).get("full_name")
-            or (buyers.get(order["buyer_id"]) or {}).get("username") or "",
-        "shop_name": (shops.get(order["shop_id"]) or {}).get("name") or "",
-    } for order in orders]})
-
-
-@bp.post("/orders/<int:order_id>/verify-payment")
-@require_role("admin")
-def verify_transfer(order_id):
-    """POST /api/admin/orders/{id}/verify-payment: Admin marks a reported bank transfer paid."""
-    db = get_db()
-    rows = (db.table("orders").select(
-        "id,status,payment_method,payment_status"
-    ).eq("id", order_id).limit(1).execute().data)
-    if not rows:
-        return fail("NOT_FOUND", "Không tìm thấy đơn hàng.", 404)
-    order = rows[0]
-    if order["payment_method"] != "bank_transfer" or order["payment_status"] != "reported":
-        return fail("INVALID_STATE", "Đơn hàng chưa có báo chuyển khoản cần đối soát.", 422)
-    if order["status"] == "cancelled":
-        return fail("INVALID_STATE", "Không thể xác nhận thanh toán cho đơn đã hủy.", 422)
-    updated = (db.table("orders").update({
-        "payment_status": "paid", "updated_at": _now_iso(),
-    }).eq("id", order_id).eq("payment_status", "reported").eq("status", order["status"]).execute().data)
-    if not updated:
-        return fail("CONFLICT", "Đơn hàng vừa được cập nhật, vui lòng tải lại.", 409)
-    return ok({"id": order_id, "payment_status": "paid"})
-
-
-# ======================================================================
 # Quản lý tất cả sản phẩm
 # ======================================================================
 

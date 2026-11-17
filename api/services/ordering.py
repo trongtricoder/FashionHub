@@ -11,6 +11,7 @@ STATUS_FILTERS = {
 
 
 ORDER_STATUSES = ("pending", "processing", "shipping", "completed", "cancelled")
+PLATFORM_FEE_RATE = 7
 
 # Seller chuyển trạng thái theo mục 10.1: pending -> processing -> shipping -> completed,
 # và được hủy khi đơn đang pending hoặc processing (shipping thì không hủy được)
@@ -32,6 +33,11 @@ class OrderError(Exception):
     def __init__(self, code, message, status):
         super().__init__(message)
         self.code, self.message, self.status = code, message, status
+
+
+def platform_fee(total):
+    """Tính phí nền tảng theo 7%, làm tròn đến đồng gần nhất."""
+    return (total * PLATFORM_FEE_RATE + 50) // 100
 
 
 def plan_checkout(cart_rows, variants, products, shops, lat=None, lng=None):

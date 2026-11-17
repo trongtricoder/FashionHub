@@ -115,6 +115,9 @@ create table if not exists orders (
   buyer_id uuid not null references profiles(id),
   shop_id bigint not null references shops(id),
   total int not null,
+  platform_fee_rate int not null default 0 check (platform_fee_rate between 0 and 100),
+  platform_fee int not null default 0 check (platform_fee >= 0),
+  seller_net int not null default 0 check (seller_net >= 0),
   status text not null default 'pending'
     check (status in ('pending','processing','shipping','completed','cancelled')),
   payment_method text not null check (payment_method in ('cod','mock_card','bank_transfer')),
@@ -125,6 +128,12 @@ create table if not exists orders (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table orders add column if not exists platform_fee_rate int not null default 0
+  check (platform_fee_rate between 0 and 100);
+alter table orders add column if not exists platform_fee int not null default 0
+  check (platform_fee >= 0);
+alter table orders add column if not exists seller_net int not null default 0
+  check (seller_net >= 0);
 alter table orders drop constraint if exists orders_payment_method_check;
 alter table orders add constraint orders_payment_method_check
   check (payment_method in ('cod','mock_card','bank_transfer'));

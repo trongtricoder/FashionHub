@@ -128,6 +128,22 @@ def test_dashboard_doanh_thu_theo_ngay_hoan_tat(client):
     assert data["kpi"]["total_sold"] == 35 and data["kpi"]["total_stock"] == 43
 
 
+def test_dashboard_va_ai_dung_doanh_thu_sau_phi(client, db):
+    db.tables["orders"].append({
+        "id": 100, "shop_id": 1, "buyer_id": "u-b1", "status": "completed", "total": 100000,
+        "platform_fee_rate": 7, "platform_fee": 7000, "seller_net": 93000,
+        "created_at": at(TODAY, 9), "updated_at": at(TODAY, 15),
+    })
+
+    dashboard = dash(client).get_json()["data"]
+    assert dashboard["revenue"][-1] == 1093000
+    assert dashboard["kpi"]["total_revenue"] == 30593000
+
+    context = seller_data.insight_context(db, {"id": 1}, TODAY)
+    assert context["revenue_last7"] == 7593000
+    assert context["revenue_30d"] == 30593000
+
+
 def test_dashboard_7_ngay_va_du_doan(client):
     data = dash(client, "7d").get_json()["data"]
     assert len(data["labels"]) == 7 and data["kpi"]["total_views"] == 7 * 25 + 1
