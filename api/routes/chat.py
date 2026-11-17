@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from flask import Blueprint, g, request
 
+from ..services import catalog
 from ..services.auth import require_role
 from ..services.db import get_db
 from ..services.responses import fail, ok
@@ -147,6 +148,38 @@ def conversations():
         })
     result.sort(key=lambda item: _timestamp(item["last_at"]), reverse=True)
     return ok(result)
+
+
+@bp.get("/shops")
+@require_role("buyer")
+def search_shops():
+    """GET /api/chat/shops?q=name: tìm shop đang được duyệt để Buyer bắt đầu chat."""
+    keyword = catalog.normalize(request.args.get("q") or "").strip()
+    if len(keyword) < 2:
+        return ok({"items": []})
+    if len(keyword) > 80:
+        return fail("INVALID_INPUT", "Từ khóa tìm shop tối đa 80 ký tự.", 400)
+
+    db = get_db()
+    shops = db.table("shops").select("id,owner_id,name").eq(
+        "moderation_status", "approved").limit(1000).execute().data
+    matches = [
+        shop for shop in shops
+        if keyword in catalog.normalize(shop.get("name") or "")
+    ]
+    owners = _profiles(db, {shop["owner_id"] for shop in matches})
+    items = []
+    for shop in matches:
+        owner = owners.get(shop["owner_id"])
+        if owner and owner.get("role") == "seller" and owner.get("status") == "active":
+            items.append({
+                "shop_id": shop["id"],
+                "name": shop["name"],
+                "user_id": shop["owner_id"],
+            })
+            if len(items) == 20:
+                break
+    return ok({"items": items})
 
 
 @bp.get("/shops/<int:shop_id>")

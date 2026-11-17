@@ -448,6 +448,18 @@
       .floating-ai-btn:hover {
         transform: translateY(-2px);
       }
+      .floating-chat-badge {
+        min-width: 20px;
+        height: 20px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: var(--red);
+        color: white;
+        font-size: 11px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
 
       .btn {
         border: none;
@@ -782,6 +794,17 @@
         font-size: 14px;
         color: var(--pink-dark);
       }
+      .notif-item.is-read .notif-title {
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+      .notif-action {
+        flex: 0 0 auto;
+        color: var(--pink-dark);
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: underline;
+      }
       .notif-time {
         font-size: 11px;
         color: var(--text-muted);
@@ -799,27 +822,130 @@
 
       /* CHAT BOX STYLES */
       .chat-modal-content {
-        max-width: 680px;
-        height: 500px;
+        max-width: 980px;
+        width: 94%;
+        height: min(680px, 88vh);
         display: flex;
         flex-direction: column;
         padding: 0;
         overflow: hidden;
       }
-      .chat-conversations {
+      .chat-workspace {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(220px, 290px) minmax(0, 1fr);
+      }
+      .chat-sidebar {
+        min-height: 0;
         display: flex;
-        gap: 8px;
-        padding: 10px 12px;
-        overflow-x: auto;
+        flex-direction: column;
+        border-right: 1px solid var(--border);
         background: white;
+      }
+      .chat-sidebar-search {
+        padding: 12px;
         border-bottom: 1px solid var(--border);
       }
-      .chat-conversation {
+      .chat-sidebar-search input {
+        width: 100%;
         border: 1px solid var(--border);
-        border-radius: 16px;
+        border-radius: 10px;
+        padding: 10px 12px;
+        outline: none;
+      }
+      .chat-sidebar-search input:focus { border-color: var(--pink-main); }
+      .chat-sidebar-heading {
+        padding: 12px 12px 6px;
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .chat-conversations {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 6px 8px 12px;
+        overflow-y: auto;
+      }
+      .chat-conversation, .chat-shop-result, .chat-ai-entry {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        text-align: left;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: white;
+        padding: 10px;
+        cursor: pointer;
+      }
+      .chat-conversation:hover, .chat-shop-result:hover, .chat-ai-entry:hover,
+      .chat-conversation.active, .chat-ai-entry.active {
         background: var(--pink-pale);
-        padding: 6px 10px;
+        border-color: var(--border);
+      }
+      .chat-conversation-main { min-width: 0; }
+      .chat-conversation-name {
+        display: block;
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
         white-space: nowrap;
+      }
+      .chat-conversation-preview {
+        display: block;
+        color: var(--text-muted);
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin-top: 3px;
+      }
+      .chat-unread-count {
+        flex: 0 0 auto;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 5px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--red);
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .chat-sidebar-footer {
+        margin-top: auto;
+        padding: 10px;
+        border-top: 1px solid var(--border);
+      }
+      .chat-main {
+        display: flex;
+        min-width: 0;
+        min-height: 0;
+        flex-direction: column;
+      }
+      .chat-panel-heading {
+        padding: 14px 16px;
+        font-weight: 700;
+        border-bottom: 1px solid var(--border);
+      }
+      .chat-empty-state {
+        margin: auto;
+        padding: 24px;
+        color: var(--text-muted);
+        text-align: center;
+      }
+      .chat-ai-panel {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        flex-direction: column;
+        padding: 12px;
       }
       .ticket-thread {
         border: 1px solid var(--border);
@@ -946,6 +1072,19 @@
         background: white;
         color: var(--pink-dark);
         cursor: pointer;
+      }
+      .chat-ai-panel .bot-log {
+        flex: 1;
+        min-height: 100px;
+        height: auto;
+      }
+      @media (max-width: 700px) {
+        .chat-modal-content { width: 96%; height: 90vh; }
+        .chat-workspace { grid-template-columns: minmax(120px, 34%) minmax(0, 1fr); }
+        .chat-sidebar-search { padding: 8px; }
+        .chat-conversation, .chat-shop-result, .chat-ai-entry { padding: 8px; }
+        .chat-input-area { padding: 8px; gap: 6px; }
+        .chat-input-area .btn { min-width: 58px; }
       }
       .chat-suggestions button:hover { background: var(--pink-pastel); }
 
@@ -1645,16 +1784,15 @@
       </section>
     </main>
 
-    <!-- NÚT TRỢ LÝ AI -->
-    <button class="floating-ai-btn" onclick="openAiModal()">
-      ✨ Trợ Lý AI
+    <!-- MỘT CỬA SỔ CHAT CHO SHOP VÀ TRỢ LÝ AI -->
+    <button class="floating-ai-btn" onclick="openBuyerChat()">
+      💬 Chat &amp; AI <span id="chatUnreadBadge" class="floating-chat-badge">0</span>
     </button>
 
-    <!-- MODAL KHUNG CHAT VỚI SHOP -->
     <div id="chatModal" class="modal">
       <div class="modal-content chat-modal-content">
         <div class="chat-header">
-          <span id="chatShopTitle">💬 Trò chuyện với Cửa hàng</span>
+          <span>💬 Tin nhắn &amp; Trợ lý AI</span>
           <span
             class="close"
             style="position: static"
@@ -1662,22 +1800,65 @@
             >&times;</span
           >
         </div>
-        <div class="chat-conversations" id="chatConversationList"></div>
-        <div class="chat-product-context" id="chatProductContext" hidden></div>
-        <div class="chat-messages" id="chatMessagesBox">
-        </div>
-        <div class="chat-input-area">
-          <input
-            type="text"
-            id="chatInputText"
-            maxlength="2000"
-            placeholder="Nhập tin nhắn..."
-            onkeydown="handleChatKey(event)" />
-          <button
-            class="btn btn-primary"
-            onclick="sendChatMessage()">
-            Gửi
-          </button>
+        <div class="chat-workspace">
+          <aside class="chat-sidebar">
+            <div class="chat-sidebar-search">
+              <input id="chatShopSearch" type="search" placeholder="Tìm tên shop để nhắn..." autocomplete="off">
+            </div>
+            <div class="chat-sidebar-heading" id="chatListHeading">Hội thoại</div>
+            <div class="chat-conversations" id="chatConversationList"></div>
+            <div class="chat-sidebar-footer">
+              <button type="button" class="chat-ai-entry" id="openBuyerAiChat">
+                ✨ <span>Trợ lý AI</span>
+              </button>
+              <button type="button" class="btn btn-light" style="width:100%;margin-top:8px" onclick="openAiModal()">
+                Gợi ý cá nhân hóa
+              </button>
+            </div>
+          </aside>
+          <section class="chat-main">
+            <div id="shopChatPane" style="display:flex;flex:1;min-height:0;flex-direction:column">
+              <div class="chat-panel-heading" id="chatShopTitle">Chọn hội thoại hoặc tìm một shop</div>
+              <div class="chat-product-context" id="chatProductContext" hidden></div>
+              <div class="chat-messages" id="chatMessagesBox">
+                <div class="chat-empty-state">Chọn một hội thoại, tìm shop mới hoặc trò chuyện với Trợ lý AI.</div>
+              </div>
+              <div class="chat-input-area">
+                <input
+                  type="text"
+                  id="chatInputText"
+                  maxlength="2000"
+                  placeholder="Nhập tin nhắn..."
+                  onkeydown="handleChatKey(event)" />
+                <button class="btn btn-primary" onclick="sendChatMessage()">Gửi</button>
+              </div>
+            </div>
+            <div id="buyerAiChatPane" class="chat-ai-panel" style="display:none">
+              <div class="chat-panel-heading">✨ Trợ lý AI</div>
+              <div class="bot-log" id="botLog">
+                <div class="bot-bubble bot">
+                  Xin chào! Mình trả lời các câu hỏi về đổi trả, phí và thời gian giao hàng, cách chọn size, thanh toán, và giúp bạn tìm sản phẩm.
+                </div>
+              </div>
+              <div class="chip-row" id="botChips">
+                <span class="chip-check" data-q="Cách chọn size?">Cách chọn size?</span>
+                <span class="chip-check" data-q="Phí giao hàng bao nhiêu?">Phí giao hàng?</span>
+                <span class="chip-check" data-q="Giao hàng bao lâu?">Giao hàng bao lâu?</span>
+                <span class="chip-check" data-q="Shop đổi trả thế nào?">Đổi trả?</span>
+                <span class="chip-check" data-q="Có những cách thanh toán nào?">Thanh toán?</span>
+                <span class="chip-check" data-q="Cho mình xem áo thun">Xem áo thun</span>
+              </div>
+              <div class="chat-input-area">
+                <input
+                  id="botInput"
+                  maxlength="300"
+                  placeholder="Nhập câu hỏi của bạn..."
+                  aria-label="Câu hỏi cho chatbot"
+                  onkeydown="if (event.key === 'Enter') askBot();" />
+                <button class="btn btn-primary" onclick="askBot()">Gửi</button>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -1698,18 +1879,6 @@
         <h2 style="color: var(--pink-dark); margin-bottom: 10px">
           ✨ Trợ Lý AI
         </h2>
-        <div class="ai-tabs">
-          <button
-            class="ai-tab active"
-            id="aiTabRec"
-            onclick="switchAiTab('rec')">
-            Gợi ý cho tôi
-          </button>
-          <button class="ai-tab" id="aiTabBot" onclick="switchAiTab('bot')">
-            Hỏi chatbot
-          </button>
-        </div>
-
         <div id="aiPaneRec">
           <p
             style="
@@ -1799,48 +1968,6 @@
           <div id="recResults" style="margin-top: 14px"></div>
         </div>
 
-        <div id="aiPaneBot" style="display: none">
-          <div class="bot-log" id="botLog">
-            <div class="bot-bubble bot">
-              Xin chào! Mình trả lời các câu hỏi về đổi trả, phí và thời gian
-              giao hàng, cách chọn size, thanh toán, và giúp bạn tìm sản phẩm.
-            </div>
-          </div>
-          <div class="chip-row" id="botChips">
-            <span class="chip-check" data-q="Cách chọn size?"
-              >Cách chọn size?</span
-            >
-            <span class="chip-check" data-q="Phí giao hàng bao nhiêu?"
-              >Phí giao hàng?</span
-            >
-            <span class="chip-check" data-q="Giao hàng bao lâu?"
-              >Giao hàng bao lâu?</span
-            >
-            <span class="chip-check" data-q="Shop đổi trả thế nào?"
-              >Đổi trả?</span
-            >
-            <span class="chip-check" data-q="Có những cách thanh toán nào?"
-              >Thanh toán?</span
-            >
-            <span class="chip-check" data-q="Cho mình xem áo thun"
-              >Xem áo thun</span
-            >
-          </div>
-          <div class="bot-input">
-            <input
-              id="botInput"
-              maxlength="300"
-              placeholder="Nhập câu hỏi của bạn..."
-              aria-label="Câu hỏi cho chatbot"
-              onkeydown="if (event.key === 'Enter') askBot();" />
-            <button
-              class="btn btn-primary"
-              style="background: var(--pink-main)"
-              onclick="askBot()">
-              Gửi
-            </button>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -1863,7 +1990,7 @@
           <button
             class="btn btn-light"
             style="font-size: 12px; padding: 4px 8px"
-            onclick="loadDerivedNotifications()">
+            onclick="refreshNotifications()">
             Cập nhật
           </button>
         </div>
@@ -2123,6 +2250,9 @@
       let activeChatProduct = null;
       let lastChatAt = null;
       let chatPollTimer = null;
+      let chatConversations = [];
+      let shopSearchTimer = null;
+      let shopSearchRequest = 0;
       let selectedTryOnItems = [];
       let productDetailRequest = 0;
       let tryOnImageCache = new Map();
@@ -3249,6 +3379,15 @@
       let notifications = [];
       let orderNotifications = [];
       let messageNotifications = [];
+      const notificationUserId = (getSession() || {}).me?.id || "current";
+      const readNotificationStorageKey = `fashionhub-notifications-read-${notificationUserId}`;
+      const orderNotificationBaselineKey = `fashionhub-order-notifications-initialized-${notificationUserId}`;
+      const readNotificationIds = new Set(
+        (localStorage.getItem(readNotificationStorageKey) || "").split("\n").filter(Boolean),
+      );
+      let orderNotificationBaselineInitialized =
+        localStorage.getItem(orderNotificationBaselineKey) === "true";
+      let notificationActionBusy = false;
 
       let cart = [];
       let myOrders = [];
@@ -3926,20 +4065,32 @@
       }
 
       function updateOrderNotifications() {
-        orderNotifications = myOrders.map((order) => ({
+        const nextNotifications = myOrders.map((order) => ({
           id: `order-${order.id}-${order.rawStatus}`,
           title: `Cập nhật đơn hàng #${order.id}`,
           content: statusNotificationLabel(order.rawStatus),
           time: order.date,
         }));
+        if (!orderNotificationBaselineInitialized) {
+          nextNotifications.forEach((notification) => readNotificationIds.add(notification.id));
+          orderNotificationBaselineInitialized = true;
+          localStorage.setItem(orderNotificationBaselineKey, "true");
+          persistReadNotifications();
+        }
+        orderNotifications = nextNotifications;
         refreshNotificationsList();
       }
 
       function updateMessageNotifications(conversations) {
+        const unreadTotal = conversations.filter((conversation) => conversation.unread > 0).length;
+        const chatBadge = document.getElementById("chatUnreadBadge");
+        chatBadge.textContent = unreadTotal > 9 ? "9+" : String(unreadTotal);
+        chatBadge.style.display = unreadTotal > 0 ? "inline-flex" : "none";
         messageNotifications = conversations
           .filter((conversation) => conversation.unread > 0)
           .map((conversation) => ({
-            id: `chat-${conversation.user_id}`,
+            id: `chat-${conversation.user_id}-${conversation.unread}-${conversation.last_at}`,
+            userId: conversation.user_id,
             title: `${conversation.name}: ${conversation.unread} tin nhắn chưa đọc`,
             content: conversation.last_message,
             time: conversation.last_at
@@ -3968,8 +4119,34 @@
       function openNotificationsModal() {
         renderNotifications();
         document.getElementById("notificationsModal").style.display = "flex";
-        loadOrders();
-        loadDerivedNotifications();
+        refreshNotifications();
+      }
+
+      async function refreshNotifications() {
+        await Promise.all([loadOrders(), loadDerivedNotifications()]);
+      }
+
+      function persistReadNotifications() {
+        localStorage.setItem(readNotificationStorageKey, [...readNotificationIds].join("\n"));
+      }
+
+      async function markNotificationRead(notificationId) {
+        const notification = notifications.find((item) => item.id === notificationId);
+        if (!notification || notificationActionBusy) return;
+        notificationActionBusy = true;
+        try {
+          if (notification.userId) {
+            const query = new URLSearchParams({ with: notification.userId });
+            await api(`/chat/messages?${query.toString()}`);
+          }
+          readNotificationIds.add(notificationId);
+          persistReadNotifications();
+          await refreshNotifications();
+        } catch (err) {
+          handleApiError(err);
+        } finally {
+          notificationActionBusy = false;
+        }
       }
 
       function renderNotifications() {
@@ -3983,7 +4160,8 @@
         } else {
           notifications.forEach((notification) => {
             const item = document.createElement("div");
-            item.className = "notif-item";
+            const isRead = readNotificationIds.has(notification.id);
+            item.className = `notif-item${isRead ? " is-read" : ""}`;
             const details = document.createElement("div");
             const title = document.createElement("div");
             title.className = "notif-title";
@@ -3996,6 +4174,13 @@
             time.textContent = notification.time;
             details.append(title, content, time);
             item.appendChild(details);
+            const action = document.createElement("button");
+            if (!isRead) {
+              action.className = "notif-action";
+              action.textContent = "Đánh dấu đã đọc";
+              action.addEventListener("click", () => markNotificationRead(notification.id));
+              item.appendChild(action);
+            }
             list.appendChild(item);
           });
         }
@@ -4005,8 +4190,11 @@
       function updateNotifBadge() {
         const badge = document.getElementById("notifBadge");
         if (badge) {
-          badge.innerText = notifications.length;
-          badge.style.display = notifications.length > 0 ? "flex" : "none";
+          const unreadCount = notifications.filter(
+            (notification) => !readNotificationIds.has(notification.id),
+          ).length;
+          badge.innerText = unreadCount;
+          badge.style.display = unreadCount > 0 ? "flex" : "none";
         }
       }
       function openChangePasswordModal() {
@@ -4069,30 +4257,58 @@
         if (activeChatProduct) context.appendChild(productAttachment(activeChatProduct));
       }
 
+      function showBuyerChatPane(pane) {
+        const isAi = pane === "ai";
+        document.getElementById("shopChatPane").style.display = isAi ? "none" : "flex";
+        document.getElementById("buyerAiChatPane").style.display = isAi ? "flex" : "none";
+        document.getElementById("openBuyerAiChat").classList.toggle("active", isAi);
+        if (isAi && chatPollTimer) {
+          clearInterval(chatPollTimer);
+          chatPollTimer = null;
+        } else if (!isAi && document.getElementById("chatModal").style.display === "flex") {
+          startChatPolling();
+        }
+      }
+
+      function startChatPolling() {
+        if (chatPollTimer) clearInterval(chatPollTimer);
+        chatPollTimer = setInterval(() => {
+          if (document.visibilityState !== "visible"
+              || document.getElementById("chatModal").style.display !== "flex"
+              || document.getElementById("buyerAiChatPane").style.display !== "none") return;
+          loadChatMessages(true);
+          loadConversations().catch(handleApiError);
+        }, 5000);
+      }
+
+      async function openBuyerChat() {
+        document.getElementById("chatModal").style.display = "flex";
+        showBuyerChatPane("shop");
+        activeChatUserId = null;
+        activeChatShopId = null;
+        activeChatProduct = null;
+        lastChatAt = null;
+        document.getElementById("chatShopTitle").textContent = "Chọn hội thoại hoặc tìm một shop";
+        document.getElementById("chatMessagesBox").innerHTML =
+          '<div class="chat-empty-state">Chọn một hội thoại, tìm shop mới hoặc trò chuyện với Trợ lý AI.</div>';
+        renderChatProductContext();
+        document.getElementById("chatShopSearch").value = "";
+        await loadConversations();
+        startChatPolling();
+      }
+
       async function openChatModal(shopName, shopId, productId) {
         if (!shopId) {
           const selected = cart.find((item) => item.checked && item.shopId);
           shopId = selected?.shopId || products[0]?.shopId;
         }
         if (!shopId) return showToast("Chưa có cửa hàng để bắt đầu trò chuyện.");
-        if (chatPollTimer) clearInterval(chatPollTimer);
-        activeChatUserId = null;
-        activeChatShopId = shopId;
-        activeChatProduct = products.find((item) => item.id === Number(productId)) || null;
-        lastChatAt = null;
-        document.getElementById("chatShopTitle").innerText = `💬 Trò chuyện với ${shopName || "Shop"}`;
-        document.getElementById("chatMessagesBox").innerHTML = "";
-        renderChatProductContext();
-        document.getElementById("chatModal").style.display = "flex";
+        await openBuyerChat();
         try {
           const contact = await api(`/chat/shops/${shopId}`);
-          activeChatUserId = contact.user_id;
-          document.getElementById("chatShopTitle").innerText = `💬 Trò chuyện với ${contact.name}`;
-          await Promise.all([loadConversations(), loadChatMessages(false)]);
-          chatPollTimer = setInterval(() => {
-            loadChatMessages(true);
-            loadConversations().catch(handleApiError);
-          }, 3000);
+          await selectChatConversation(contact.user_id, contact.name || shopName);
+          activeChatProduct = products.find((item) => item.id === Number(productId)) || null;
+          renderChatProductContext();
         } catch (err) {
           handleApiError(err);
         }
@@ -4101,11 +4317,80 @@
       async function loadConversations() {
         const list = document.getElementById("chatConversationList");
         const data = await api("/chat/conversations");
+        chatConversations = data;
         updateMessageNotifications(data);
-        list.innerHTML = data.map((conversation) => `
-          <button class="chat-conversation" data-chat-user="${escapeHtml(conversation.user_id)}">
-            ${escapeHtml(conversation.name)}${conversation.unread ? ` (${conversation.unread})` : ""}
-          </button>`).join("");
+        document.getElementById("chatListHeading").textContent = "Hội thoại";
+        const search = document.getElementById("chatShopSearch").value.trim();
+        if (search.length >= 2 && document.activeElement === document.getElementById("chatShopSearch")) {
+          return data;
+        }
+        list.replaceChildren();
+        if (!data.length) {
+          const empty = document.createElement("div");
+          empty.className = "chat-empty-state";
+          empty.textContent = "Chưa có hội thoại nào.";
+          list.appendChild(empty);
+          return data;
+        }
+        data.forEach((conversation) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `chat-conversation${conversation.user_id === activeChatUserId ? " active" : ""}`;
+          button.dataset.chatUser = conversation.user_id;
+          const main = document.createElement("span");
+          main.className = "chat-conversation-main";
+          const name = document.createElement("span");
+          name.className = "chat-conversation-name";
+          name.textContent = conversation.name;
+          const preview = document.createElement("span");
+          preview.className = "chat-conversation-preview";
+          preview.textContent = conversation.last_message;
+          main.append(name, preview);
+          button.appendChild(main);
+          if (conversation.unread > 0) {
+            const unread = document.createElement("span");
+            unread.className = "chat-unread-count";
+            unread.textContent = String(conversation.unread);
+            button.appendChild(unread);
+          }
+          list.appendChild(button);
+        });
+        return data;
+      }
+
+      async function searchChatShops(query) {
+        const requestId = ++shopSearchRequest;
+        const value = query.trim();
+        if (value.length < 2) return loadConversations();
+        const list = document.getElementById("chatConversationList");
+        document.getElementById("chatListHeading").textContent = "Shop tìm thấy";
+        list.innerHTML = '<div class="chat-empty-state">Đang tìm shop...</div>';
+        try {
+          const params = new URLSearchParams({ q: value });
+          const data = await api(`/chat/shops?${params.toString()}`);
+          if (requestId !== shopSearchRequest) return;
+          list.replaceChildren();
+          if (!data.items.length) {
+            const empty = document.createElement("div");
+            empty.className = "chat-empty-state";
+            empty.textContent = "Không tìm thấy shop phù hợp.";
+            list.appendChild(empty);
+            return;
+          }
+          data.items.forEach((shop) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "chat-shop-result";
+            button.dataset.chatShopId = String(shop.shop_id);
+            button.dataset.chatShopName = shop.name;
+            button.textContent = shop.name;
+            list.appendChild(button);
+          });
+        } catch (err) {
+          if (requestId === shopSearchRequest) {
+            list.innerHTML = `<div class="chat-empty-state">${escapeHtml(err.message)}</div>`;
+          }
+        }
       }
 
       async function loadChatMessages(incremental) {
@@ -4124,7 +4409,7 @@
             const suggestions = document.createElement("div");
             suggestions.className = "chat-suggestions";
             const prompt = document.createElement("p");
-            prompt.textContent = "Bạn có thể hỏi shop:";
+            prompt.textContent = "Bắt đầu bằng một câu hỏi:";
             suggestions.appendChild(prompt);
             [
               "Sản phẩm còn hàng không?",
@@ -4156,19 +4441,45 @@
         }
       }
 
-      async function selectChatConversation(userId) {
+      async function selectChatConversation(userId, conversationName) {
+        showBuyerChatPane("shop");
         activeChatUserId = userId;
         activeChatShopId = null;
         activeChatProduct = null;
         renderChatProductContext();
         lastChatAt = null;
-        document.getElementById("chatMessagesBox").innerHTML = "";
+        const conversation = chatConversations.find((item) => item.user_id === userId);
+        document.getElementById("chatShopTitle").textContent =
+          `💬 ${conversationName || conversation?.name || "Cửa hàng"}`;
+        document.getElementById("chatMessagesBox").replaceChildren();
+        await loadConversations();
         await loadChatMessages(false);
       }
 
       document.getElementById("chatConversationList").addEventListener("click", (event) => {
         const button = event.target.closest("[data-chat-user]");
-        if (button) selectChatConversation(button.dataset.chatUser);
+        if (button) return selectChatConversation(button.dataset.chatUser);
+        const shopButton = event.target.closest("[data-chat-shop-id]");
+        if (shopButton) {
+          const shopId = Number(shopButton.dataset.chatShopId);
+          const shopName = shopButton.dataset.chatShopName;
+          api(`/chat/shops/${shopId}`)
+            .then((contact) => selectChatConversation(contact.user_id, contact.name || shopName))
+            .catch(handleApiError);
+        }
+      });
+
+      document.getElementById("chatShopSearch").addEventListener("input", (event) => {
+        clearTimeout(shopSearchTimer);
+        const value = event.target.value;
+        shopSearchTimer = setTimeout(() => {
+          if (value.trim().length >= 2) searchChatShops(value);
+          else loadConversations().catch(handleApiError);
+        }, 250);
+      });
+      document.getElementById("openBuyerAiChat").addEventListener("click", () => {
+        showBuyerChatPane("ai");
+        document.getElementById("botInput").focus();
       });
 
       document.getElementById("chatMessagesBox").addEventListener("click", (event) => {
@@ -4193,6 +4504,9 @@
           activeChatUserId = message.receiver_id;
           activeChatShopId = null;
           activeChatProduct = null;
+          const conversation = chatConversations.find((item) => item.user_id === activeChatUserId);
+          document.getElementById("chatShopTitle").textContent =
+            `💬 ${conversation?.name || "Cửa hàng"}`;
           renderChatProductContext();
           input.value = "";
           await Promise.all([loadChatMessages(false), loadConversations()]);
@@ -4257,19 +4571,6 @@
       function openAiModal() {
         document.getElementById("aiStylistModal").style.display = "flex";
         if (!bodyProfileLoaded) loadBodyProfile();
-      }
-
-      function switchAiTab(tab) {
-        document.getElementById("aiPaneRec").style.display =
-          tab === "rec" ? "block" : "none";
-        document.getElementById("aiPaneBot").style.display =
-          tab === "bot" ? "block" : "none";
-        document
-          .getElementById("aiTabRec")
-          .classList.toggle("active", tab === "rec");
-        document
-          .getElementById("aiTabBot")
-          .classList.toggle("active", tab === "bot");
       }
 
       function renderStyleChips(selected) {

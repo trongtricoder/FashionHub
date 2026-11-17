@@ -48,6 +48,30 @@ def test_chat_send_poll_unread_and_mark_read(monkeypatch):
     assert db.tables["messages"][0]["is_read"] is True
 
 
+def test_buyer_tim_shop_de_bat_dau_chat_an_toan(monkeypatch):
+    db = FakeDB(
+        {
+            "profiles": PROFILES,
+            "shops": [
+                {"id": 7, "owner_id": "seller-1", "name": "Áo Đẹp Shop", "moderation_status": "approved"},
+                {"id": 8, "owner_id": "seller-2", "name": "Shop bị chặn", "moderation_status": "blocked"},
+                {"id": 9, "owner_id": "seller-2", "name": "Shop Seller khóa", "moderation_status": "approved"},
+            ],
+        },
+        {"buyer-token": "buyer-1", "seller-token": "seller-1"},
+    )
+    next(profile for profile in db.tables["profiles"] if profile["id"] == "seller-2")["status"] = "banned"
+    client = _client(monkeypatch, db)
+
+    response = client.get("/api/chat/shops?q=ao dep", headers=_headers("buyer-token"))
+    assert response.status_code == 200
+    assert response.get_json()["data"]["items"] == [{
+        "shop_id": 7, "name": "Áo Đẹp Shop", "user_id": "seller-1",
+    }]
+    assert client.get("/api/chat/shops?q=a", headers=_headers("buyer-token")).get_json()["data"]["items"] == []
+    assert client.get("/api/chat/shops?q=shop", headers=_headers("seller-token")).status_code == 403
+
+
 def test_buyer_message_carries_product_context_to_seller(monkeypatch):
     db = FakeDB(
         {
