@@ -426,6 +426,75 @@
         font-size: 16px;
         margin-bottom: 12px;
       }
+      .ai-tryon-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 18px;
+      }
+      .ai-tryon-preview {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .ai-tryon-preview figure {
+        min-width: 0;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 8px;
+        background: var(--pink-pale);
+      }
+      .ai-tryon-preview figcaption {
+        margin-bottom: 6px;
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+      .ai-tryon-preview img {
+        display: block;
+        width: 100%;
+        height: 230px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: white;
+      }
+      .ai-tryon-preview img[hidden],
+      .ai-tryon-result[hidden] {
+        display: none;
+      }
+      .ai-tryon-result {
+        display: block;
+        width: 100%;
+        max-height: 620px;
+        object-fit: contain;
+        border-radius: 12px;
+        background: var(--pink-pale);
+      }
+      .ai-tryon-consent {
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+        margin: 14px 0;
+        color: var(--text-dark);
+        font-size: 13px;
+      }
+      .ai-tryon-consent input {
+        margin-top: 4px;
+        flex: 0 0 auto;
+      }
+      .ai-tryon-status {
+        min-height: 24px;
+        margin-top: 10px;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+      .tryon-help {
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+      @media (max-width: 760px) {
+        .ai-tryon-layout { grid-template-columns: 1fr; }
+        .ai-tryon-preview img { height: 180px; }
+      }
 
       .floating-ai-btn {
         position: fixed;
@@ -1397,6 +1466,7 @@
             data-i18n="nav_orders">
             📦 Đơn hàng
           </button>
+          <button id="tryonNavButton" onclick="showPage('tryon-page', this)">✨ Thử đồ AI</button>
         </nav>
       </div>
     </header>
@@ -1510,6 +1580,57 @@
           </p>
         </div>
         <div class="product-grid" id="productGrid"></div>
+      </section>
+
+      <section id="tryon-page" class="page">
+        <div class="page-heading">
+          <h1>✨ Thử đồ AI</h1>
+          <p>Chọn một chiếc áo và ảnh toàn thân chính diện để xem bản phối thử bằng AI.</p>
+        </div>
+        <div class="panel">
+          <strong>Bản demo phi thương mại</strong>
+          <p class="tryon-help" style="margin-top: 4px;">
+            Model <a href="https://huggingface.co/spaces/yisol/IDM-VTON" target="_blank" rel="noopener noreferrer">IDM-VTON trên Hugging Face</a> có giấy phép CC BY-NC-SA 4.0 và hiện chỉ hỗ trợ thử áo. Không dùng tính năng này cho hoạt động kinh doanh nếu chưa có quyền sử dụng phù hợp.
+          </p>
+        </div>
+        <div class="ai-tryon-layout">
+          <div class="panel">
+            <div class="form-group">
+              <label for="aiTryOnProduct">Chọn áo trong FashionHub</label>
+              <select id="aiTryOnProduct" onchange="updateAiTryOnProduct()"></select>
+            </div>
+            <div class="form-group">
+              <label for="aiTryOnPhoto">Ảnh toàn thân của bạn</label>
+              <input id="aiTryOnPhoto" type="file" accept="image/jpeg,image/png,image/webp" onchange="handleAiTryOnPhoto(event)" />
+              <small>Ảnh rõ người, đứng thẳng và đủ sáng cho kết quả tốt hơn. Tối đa 8 MB.</small>
+            </div>
+            <div class="ai-tryon-preview">
+              <figure>
+                <figcaption>Ảnh của bạn</figcaption>
+                <img id="aiTryOnPersonPreview" alt="Ảnh toàn thân đã chọn" hidden />
+              </figure>
+              <figure>
+                <figcaption>Ảnh sản phẩm</figcaption>
+                <img id="aiTryOnGarmentPreview" alt="Áo được chọn" hidden />
+              </figure>
+            </div>
+            <label class="ai-tryon-consent">
+              <input id="aiTryOnConsent" type="checkbox" onchange="updateAiTryOnButton()" />
+              <span>Tôi đồng ý gửi ảnh toàn thân đã chọn và ảnh áo tới Hugging Face để tạo ảnh thử đồ. Ảnh không được FashionHub lưu, nhưng dịch vụ HF có thể xử lý/lưu tạm theo chính sách riêng của họ.</span>
+            </label>
+            <button class="btn btn-primary" id="aiTryOnSubmit" type="button" onclick="generateAiTryOn()" disabled>
+              ✨ Tạo ảnh thử đồ
+            </button>
+            <p class="ai-tryon-status" id="aiTryOnStatus" role="status" aria-live="polite">
+              Chọn áo, ảnh của bạn và xác nhận đồng ý để bắt đầu.
+            </p>
+          </div>
+          <div class="panel">
+            <h2 style="margin-bottom: 10px;">Kết quả thử đồ</h2>
+            <p class="tryon-help" id="aiTryOnResultHint">Ảnh kết quả sẽ xuất hiện tại đây.</p>
+            <img class="ai-tryon-result" id="aiTryOnResult" alt="Kết quả thử đồ AI" hidden />
+          </div>
+        </div>
       </section>
 
       <!-- GIỎ HÀNG -->
@@ -2263,6 +2384,11 @@
       let tryOnCameraStream = null;
       let savedBodyProfile = null;
       let bodyProfileLoaded = false;
+      let aiTryOnClientPromise = null;
+      let aiTryOnPhotoFile = null;
+      let aiTryOnPhotoUrl = null;
+      let aiTryOnBusy = false;
+      let aiTryOnGarmentImageReady = false;
 
       async function loadProducts() {
         try {
@@ -2283,6 +2409,7 @@
               ? p.image_url.replace(/"/g, "%22")
               : "",
           }));
+          renderAiTryOnProducts();
         } catch (err) {
           products = [];
           showToast(err.message);
@@ -2291,6 +2418,196 @@
             grid.innerHTML =
               '<p>Không tải được sản phẩm. <button class="btn btn-light" onclick="location.reload()">Thử lại</button></p>';
         }
+      }
+
+      const HF_TRYON_SPACE = "https://yisol-idm-vton.hf.space";
+
+      function renderAiTryOnProducts(selectedId) {
+        const select = document.getElementById("aiTryOnProduct");
+        if (!select) return;
+        const eligible = products.filter((product) => product.category === "ao" && product.img);
+        select.replaceChildren();
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = eligible.length
+          ? "— Chọn áo —"
+          : "Chưa có sản phẩm áo kèm ảnh";
+        select.appendChild(placeholder);
+        eligible.forEach((product) => {
+          const option = document.createElement("option");
+          option.value = String(product.id);
+          option.textContent = product.rawName;
+          select.appendChild(option);
+        });
+        if (selectedId != null && eligible.some((product) => String(product.id) === String(selectedId))) {
+          select.value = String(selectedId);
+        }
+        updateAiTryOnProduct();
+      }
+
+      function selectedAiTryOnProduct() {
+        const id = document.getElementById("aiTryOnProduct")?.value;
+        return products.find((product) => String(product.id) === id && product.category === "ao") || null;
+      }
+
+      function updateAiTryOnProduct() {
+        const product = selectedAiTryOnProduct();
+        const preview = document.getElementById("aiTryOnGarmentPreview");
+        document.getElementById("aiTryOnConsent").checked = false;
+        if (preview) {
+          aiTryOnGarmentImageReady = false;
+          preview.hidden = !product;
+          preview.onload = () => {
+            aiTryOnGarmentImageReady = true;
+            updateAiTryOnButton();
+          };
+          preview.onerror = () => {
+            aiTryOnGarmentImageReady = false;
+            preview.hidden = true;
+            document.getElementById("aiTryOnStatus").textContent =
+              "Không tải được ảnh áo đã chọn. Hãy thử sản phẩm khác.";
+            updateAiTryOnButton();
+          };
+          if (product) preview.src = product.img;
+          else preview.removeAttribute("src");
+        }
+        const result = document.getElementById("aiTryOnResult");
+        if (result) result.hidden = true;
+        const resultHint = document.getElementById("aiTryOnResultHint");
+        if (resultHint) resultHint.hidden = false;
+        updateAiTryOnButton();
+      }
+
+      function handleAiTryOnPhoto(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        document.getElementById("aiTryOnConsent").checked = false;
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 8 * 1024 * 1024) {
+          event.target.value = "";
+          if (aiTryOnPhotoUrl) URL.revokeObjectURL(aiTryOnPhotoUrl);
+          aiTryOnPhotoUrl = null;
+          aiTryOnPhotoFile = null;
+          document.getElementById("aiTryOnPersonPreview").removeAttribute("src");
+          document.getElementById("aiTryOnPersonPreview").hidden = true;
+          showToast("Chọn ảnh JPG, PNG hoặc WebP nhỏ hơn 8 MB.");
+          updateAiTryOnButton();
+          return;
+        }
+        if (aiTryOnPhotoUrl) URL.revokeObjectURL(aiTryOnPhotoUrl);
+        aiTryOnPhotoFile = file;
+        aiTryOnPhotoUrl = URL.createObjectURL(file);
+        const preview = document.getElementById("aiTryOnPersonPreview");
+        preview.src = aiTryOnPhotoUrl;
+        preview.hidden = false;
+        document.getElementById("aiTryOnResult").hidden = true;
+        document.getElementById("aiTryOnResultHint").hidden = false;
+        document.getElementById("aiTryOnStatus").textContent =
+          "Ảnh chỉ đang nằm trong bộ nhớ của trình duyệt; ảnh chưa được gửi đi.";
+        updateAiTryOnButton();
+      }
+
+      function updateAiTryOnButton() {
+        const button = document.getElementById("aiTryOnSubmit");
+        if (!button) return;
+        document.getElementById("aiTryOnPhoto").disabled = aiTryOnBusy;
+        document.getElementById("aiTryOnProduct").disabled = aiTryOnBusy;
+        document.getElementById("aiTryOnConsent").disabled = aiTryOnBusy;
+        button.disabled =
+          aiTryOnBusy ||
+          !selectedAiTryOnProduct() ||
+          !aiTryOnGarmentImageReady ||
+          !aiTryOnPhotoFile ||
+          !document.getElementById("aiTryOnConsent").checked;
+        button.textContent = aiTryOnBusy ? "Đang tạo ảnh..." : "✨ Tạo ảnh thử đồ";
+      }
+
+      async function getAiTryOnClient() {
+        if (!aiTryOnClientPromise) {
+          aiTryOnClientPromise = import("https://cdn.jsdelivr.net/npm/@gradio/client@2.8.0/dist/index.min.js")
+            .then(async ({ Client, handle_file }) => ({
+              client: await Client.connect(HF_TRYON_SPACE),
+              handle_file,
+            }))
+            .catch((error) => {
+              aiTryOnClientPromise = null;
+              throw new Error(`Không kết nối được Hugging Face: ${error.message}`);
+            });
+        }
+        return aiTryOnClientPromise;
+      }
+
+      function aiTryOnOutputUrl(file) {
+        const value = typeof file === "string" ? file : file && (file.url || file.path);
+        if (!value) return "";
+        if (/^https?:\/\//i.test(value)) {
+          try {
+            return new URL(value).origin === HF_TRYON_SPACE ? value : "";
+          } catch (error) {
+            return "";
+          }
+        }
+        if (value.startsWith("/file=")) return `${HF_TRYON_SPACE}${value}`;
+        return `${HF_TRYON_SPACE}/file=/${value.replace(/^\/+/, "")}`;
+      }
+
+      async function generateAiTryOn() {
+        const product = selectedAiTryOnProduct();
+        const consent = document.getElementById("aiTryOnConsent").checked;
+        if (!product || !aiTryOnPhotoFile || !consent || aiTryOnBusy) {
+          showToast("Chọn áo, ảnh toàn thân và xác nhận đồng ý trước khi tạo ảnh.");
+          return;
+        }
+
+        const photoFile = aiTryOnPhotoFile;
+        const garmentUrl = product.img;
+        aiTryOnBusy = true;
+        updateAiTryOnButton();
+        document.getElementById("aiTryOnStatus").textContent =
+          "Đang gửi ảnh trực tiếp tới Hugging Face. Dịch vụ công khai có thể phải chờ trong hàng đợi.";
+        document.getElementById("aiTryOnResult").hidden = true;
+        document.getElementById("aiTryOnResultHint").hidden = false;
+        try {
+          const { client, handle_file } = await getAiTryOnClient();
+          const response = await client.predict("/tryon", [
+            {
+              background: handle_file(photoFile),
+              layers: [],
+              composite: null,
+            },
+            handle_file(garmentUrl),
+            "A top as shown in the garment image",
+            true,
+            true,
+            30,
+            42,
+          ]);
+          const imageUrl = aiTryOnOutputUrl(response.data && response.data[0]);
+          if (!imageUrl) throw new Error("Hugging Face không trả về ảnh kết quả.");
+          const result = document.getElementById("aiTryOnResult");
+          result.onload = () => {
+            document.getElementById("aiTryOnStatus").textContent =
+              "Đã tạo xong ảnh thử đồ. Kết quả chỉ mang tính tham khảo.";
+          };
+          result.onerror = () => {
+            result.hidden = true;
+            document.getElementById("aiTryOnStatus").textContent =
+              "Ảnh đã tạo nhưng không tải được từ Hugging Face. Hãy thử lại sau.";
+          };
+          result.src = imageUrl;
+          result.hidden = false;
+          document.getElementById("aiTryOnResultHint").hidden = true;
+        } catch (error) {
+          document.getElementById("aiTryOnStatus").textContent =
+            `Không tạo được ảnh thử đồ: ${error.message}`;
+        } finally {
+          aiTryOnBusy = false;
+          updateAiTryOnButton();
+        }
+      }
+
+      function openAiTryOnPage(productId) {
+        showPage("tryon-page", document.getElementById("tryonNavButton"));
+        renderAiTryOnProducts(productId);
       }
 
       // ===== Patch 02: giỏ hàng, đặt hàng, đơn hàng chạy qua server =====
@@ -2873,6 +3190,7 @@
       window.addEventListener("pagehide", () => {
         stopTryOnCamera();
         if (tryOnFaceObjectUrl) URL.revokeObjectURL(tryOnFaceObjectUrl);
+        if (aiTryOnPhotoUrl) URL.revokeObjectURL(aiTryOnPhotoUrl);
       });
 
       function drawTryOnImage(context, image, target, preserveAspectRatio = true) {
@@ -3603,6 +3921,7 @@
             </div>
             <button class="btn btn-light" onclick="openChatModal('', ${p.shopId}, ${p.id})">💬 Nhắn shop</button>
             <button class="btn btn-primary" style="background:var(--pink-main);" onclick="openAddToCartModal(${p.id})">🛒 Chọn & Thêm Giỏ Hàng</button>
+            ${p.category === "ao" && p.img ? `<button class="btn btn-light" type="button" onclick="openAiTryOnPage(${p.id})">✨ Thử đồ AI</button>` : ""}
           </div>
         `,
             )
@@ -3627,6 +3946,7 @@
             </div>
             <button class="btn btn-light" onclick="openChatModal('', ${p.shopId}, ${p.id})">💬 Nhắn shop</button>
             <button class="btn btn-primary" style="background:var(--pink-main);" onclick="openAddToCartModal(${p.id})">🛒 Chọn & Thêm Giỏ Hàng</button>
+            ${p.category === "ao" && p.img ? `<button class="btn btn-light" type="button" onclick="openAiTryOnPage(${p.id})">✨ Thử đồ AI</button>` : ""}
           </div>
         `,
             )

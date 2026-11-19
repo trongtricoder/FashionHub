@@ -1,4 +1,4 @@
-// seller/common.js: hàm dùng chung cho các trang quản lý của Seller (shop.html, product-edit.html).
+// seller/common.js: hàm dùng chung cho các trang quản lý của Seller.
 // Nạp SAU core/api.js. Các trang không được khai báo lại những tên dưới đây.
 
 const STATUS_LABEL = {

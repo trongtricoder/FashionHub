@@ -30,6 +30,15 @@
     .logo span { display: block; color: var(--text-muted); font-size: 11px; font-weight: 400; }
     .header-actions { display: flex; align-items: center; gap: 18px; position: relative; }
     .lang-select { border: 0; background: transparent; font-size: 15px; font-weight: 700; }
+    .icon-btn {
+      position: relative; display: grid; width: 44px; height: 44px; place-items: center;
+      border: 1px solid var(--border); border-radius: 50%; background: var(--pink-pale); font-size: 20px;
+    }
+    .notif-badge {
+      position: absolute; top: -2px; right: -2px; display: flex; width: 20px; height: 20px;
+      align-items: center; justify-content: center; border-radius: 50%; background: var(--red);
+      color: var(--white); font-size: 11px; font-weight: 700;
+    }
     .avatar-btn {
       width: 46px; height: 46px; border: 2px solid var(--border); border-radius: 50%;
       background: var(--pink-pastel); color: var(--pink-dark); font-size: 17px; font-weight: 700;
@@ -96,6 +105,8 @@
     .btn-primary:hover { background: var(--pink-dark); }
     .btn:disabled, .chat-compose input:disabled { opacity: .55; cursor: not-allowed; }
     #chatStatus { min-height: 24px; margin: 4px 0 10px; color: var(--text-muted); font-size: 14px; }
+    .seller-toast { position: fixed; right: 24px; bottom: 24px; z-index: 999; max-width: 360px; padding: 12px 18px; border-radius: 10px; background: var(--text-dark); color: var(--white); font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .seller-toast.show { opacity: 1; }
     @media (max-width: 760px) {
       header { padding: 14px 4%; }
       .header-top { flex-wrap: wrap; }
@@ -120,6 +131,9 @@
           <option value="vi">Tiếng Việt</option>
           <option value="en">English</option>
         </select>
+        <button class="icon-btn seller-notifications-button" aria-label="Thông báo">
+          🔔 <span class="notif-badge seller-notif-badge" style="display:none">0</span>
+        </button>
         <button class="avatar-btn" onclick="toggleUserDropdown(event)" id="avatarBtn" aria-label="Tài khoản Seller">SH</button>
         <div class="user-dropdown" id="userDropdown">
           <div class="user-dropdown-header">
@@ -140,15 +154,16 @@
     </div>
     <div class="header-bottom">
       <nav>
-        <a href="index.html">Trang chủ</a>
-        <a href="shop.html">Cửa hàng</a>
-        <a href="orders.html">Đơn hàng</a>
-        <a href="dashboard.html">Thống kê &amp; AI</a>
+        <a href="index.html">🏠 Trang chủ</a>
+        <a href="shop.html">🏪 Cửa hàng &amp; Sản phẩm</a>
+        <a href="orders.html">📦 Đơn hàng</a>
+        <a href="dashboard.html">📊 Thống kê &amp; AI</a>
         <a href="chat.html" class="active">💬 Chat với Buyer</a>
         <a href="ticket.html">🎫 Ticket Admin</a>
       </nav>
     </div>
   </header>
+  <div class="seller-toast" id="sellerToast" role="status" aria-live="polite"></div>
   <main>
     <div class="page-heading">
       <h1>Chat với Buyer</h1>
